@@ -215,6 +215,7 @@ def test_rollups_outlive_raw_rows_and_serve_long_windows(store):
 
 def test_self_service_enrollment_and_operator_controls(store, monkeypatch):
     monkeypatch.setenv("ADMIN_TOKEN", "adm")
+    monkeypatch.setenv("ENROLLMENT", "open")
     call = lambda m, p, h=None, b=b"": app.handle(m, p, h or {}, {}, b, store)
     enroll = lambda pid: call("POST", "/v1/enroll", b=json.dumps({"id": pid, "name": "X"}).encode())
     r = enroll("my-anchor"); assert r["statusCode"] == 201
@@ -247,3 +248,22 @@ def test_web_summary_has_every_rfp_web_metric():
     assert w["referrers"][0] == {"name": "stellar.org", "count": 9} and w["referrers"][1]["name"].startswith("(direct")
     assert w["countries"][0]["name"] == "MX" and w["browsers"][0]["count"] == 7 and w["devices"][0]["name"] == "desktop"
     assert web_summary({}, {})["bounce_rate"] == 0.0  # no visits: no division by zero
+
+
+def test_enrollment_is_closed_by_default_and_gated(store, monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "adm")
+    for v in ("ENROLLMENT", "ENROLL_INVITES", "ENROLL_MAX_PER_HOUR"):
+        monkeypatch.delenv(v, raising=False)
+    body = lambda pid: json.dumps({"id": pid, "name": "X"}).encode()
+    enroll = lambda pid, h=None: app.handle("POST", "/v1/enroll", h or {}, {}, body(pid), store)["statusCode"]
+    assert enroll("proj-one") == 403                                  # default: closed to the public
+    assert enroll("proj-one", {"x-scfa-admin": "wrong"}) == 403
+    assert enroll("proj-one", {"x-scfa-admin": "adm"}) == 201         # an operator can always create tenants
+    monkeypatch.setenv("ENROLLMENT", "invite")
+    monkeypatch.setenv("ENROLL_INVITES", "code-a, code-b")
+    assert enroll("proj-two") == 403 and enroll("proj-two", {"x-scfa-invite": "nope"}) == 403
+    assert enroll("proj-two", {"x-scfa-invite": "code-b"}) == 201
+    monkeypatch.setenv("ENROLLMENT", "open")
+    monkeypatch.setenv("ENROLL_MAX_PER_HOUR", "3")                    # 2 projects exist; a third fits, a fourth does not
+    assert enroll("proj-three") == 201 and enroll("proj-four") == 429
+    assert enroll("proj-four", {"x-scfa-admin": "adm"}) == 201        # the rate limit never blocks operators

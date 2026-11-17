@@ -4,7 +4,11 @@ Routes
   POST /v1/traces                 OTLP/HTTP JSON; header x-scfa-key: <project key>
   GET  /v1/metrics?hours=24[&format=csv]  project view (csv = per-route export) (same key); hours 1..8760 (1h, 6h, 12h, 24h, 168=7d, 720=30d, 8760=1y)
   GET  /v1/global?hours=24        SCF-wide view; header x-scfa-admin: <ADMIN_TOKEN>
-  POST /v1/enroll                 self-service sign-up {"id","name"}; returns the project key once
+  POST /v1/enroll                 sign-up {"id","name"}; returns the project key once. CLOSED by default.
+                                  ENROLLMENT=closed (default): only an operator (x-scfa-admin) can enroll.
+                                  ENROLLMENT=invite: header x-scfa-invite must match a code in ENROLL_INVITES
+                                  (comma-separated). ENROLLMENT=open: anyone. In invite and open modes at most
+                                  ENROLL_MAX_PER_HOUR (default 10) projects are created per hour (429 after that).
   GET  /v1/admin/projects                       operator: list projects          (x-scfa-admin)
   POST /v1/admin/projects/<id>/rotate-key       operator: new key, old one dies  (x-scfa-admin)
   POST /v1/admin/projects/<id>/revoke-key       operator: key dies, none issued  (x-scfa-admin)
@@ -76,8 +80,21 @@ def handle(method: str, path: str, headers: dict, query: dict, body: bytes, stor
         return _resp(200, {**view, "source": "rollup" if long_window else "raw"})
 
     if path == "/v1/enroll" and method == "POST":  # self-service; SCF removes non-ecosystem projects
-        if os.environ.get("ENROLLMENT", "open") != "open":
-            return _resp(403, {"error": "Enrollment is closed."})
+        mode = os.environ.get("ENROLLMENT", "closed")
+        if not is_admin:  # operators can always create tenants; everyone else goes through the gate
+            if mode == "invite":
+                codes = [c.strip() for c in os.environ.get("ENROLL_INVITES", "").split(",") if c.strip()]
+                given = headers.get("x-scfa-invite", "")
+                if not any(hmac.compare_digest(given, c) for c in codes):
+                    return _resp(403, {"error": "A valid invite code is required (header x-scfa-invite)."})
+            elif mode != "open":
+                return _resp(403, {"error": "Enrollment is closed. Ask an SCF operator to create your project."})
+            try:
+                cap = int(os.environ.get("ENROLL_MAX_PER_HOUR", "10"))
+            except ValueError:
+                cap = 10
+            if store.projects_created_since(now - 3600) >= cap:
+                return _resp(429, {"error": "Too many enrollments this hour. Try again later."})
         try:
             req = json.loads(body or b"{}")
             pid, name = str(req["id"]), str(req["name"]).strip()

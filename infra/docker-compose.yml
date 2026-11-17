@@ -2,6 +2,8 @@
 # Web analytics: Umami (MIT). API metrics: scfa (this repo). One PostgreSQL.
 # For production, point DATABASE_URL at a Lightsail managed PostgreSQL instead
 # of the local `db` service, so backups and patching are handled by AWS.
+# Local test stack. Umami ships with the default login admin / umami: CHANGE IT ON FIRST LOGIN and never
+# expose ports 3000 or 8080 to the internet with default or throwaway passwords.
 services:
   db:
     image: postgres:16-alpine

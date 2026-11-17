@@ -11,7 +11,7 @@ This repository is a working prototype and draft proposal for the SCF RFP Track 
 *"Web and API Analytics for Stellar Ecosystem Projects"*
 ([handbook](https://stellar.gitbook.io/scf-handbook/scf-awards/build-award/rfp-track#current-open-rfps)).
 
-> **Status: prototype, not deployed.** 17 automated tests pass. Nothing runs in the cloud, no money is spent, and the repository touches no mainnet, wallets or keys. All numbers in the demo dashboard are generated example data. The honest, requirement-by-requirement status is in [docs/RFP-COVERAGE.md](docs/RFP-COVERAGE.md).
+> **Status: prototype, not deployed.** 18 automated tests pass. Nothing runs in the cloud, no money is spent, and the repository touches no mainnet, wallets or keys. All numbers in the demo dashboard are generated example data. The honest, requirement-by-requirement status is in [docs/RFP-COVERAGE.md](docs/RFP-COVERAGE.md).
 
 ## Contents
 
@@ -22,7 +22,7 @@ This repository is a working prototype and draft proposal for the SCF RFP Track 
 | For | You get |
 |---|---|
 | **A Stellar project** | A private dashboard: how many API requests, how many failed, how fast, per route and per Stellar protocol (SEP-10, SEP-12, SEP-24, SEP-31, Soroban RPC, Horizon); a reliability target (SLO) with an error budget; website visitors from Umami; alerts to Slack or Discord; CSV export. |
-| **SCF operators** | One ecosystem-wide view (per-project totals only, no route detail); self-service enrollment for projects; remove a project and erase its data; rotate or revoke any project's key. |
+| **SCF operators** | One ecosystem-wide view (per-project totals only, no route detail); enrollment that is closed by default and opens by invite code or rate limit; remove a project and erase its data; rotate or revoke any project's key. |
 | **Everyone** | No cookies, no IP addresses, no user agents, no query strings, no wallet addresses in stored paths. Open source, Apache-2.0. |
 
 Two data sources, one place:
@@ -102,11 +102,15 @@ flowchart TD
 
 Every database query is filtered by `project_id` (tenant isolation). Erasing a project is one operator call that deletes its rows, rollups and rules. See [docs/PRIVACY-GDPR.md](docs/PRIVACY-GDPR.md) (not legal advice).
 
+## Availability
+
+The RFP asks for 99.99% ingestion and 99.90% dashboard availability. A single server cannot promise that, so the design is a redundant deployment (two servers in different availability zones behind a load balancer, with a high-availability managed database) and the commitment is to **measure and publish** availability, not to guarantee it. Design, cost and handover: [docs/OPERATIONS.md](docs/OPERATIONS.md) and [COSTS.md](COSTS.md).
+
 ## Metrics
 
 | Metric | Definition |
 |---|---|
-| Failed rate | requests with status 500-599 ÷ all requests |
+| Failed rate (called `error_rate` in the API and in alert rules: the same number) | requests with status 500-599 ÷ all requests |
 | p50 / p95 / p99 | nearest-rank percentile of latency. From the hourly rollups (windows over 30 days) it is the latency bucket's upper edge: accurate to the bucket, shown as `≈` in the dashboard |
 | Protocol group | route prefix `/sep10`, `/sep12`, `/sep24`, `/sep31`, `/rpc` (Soroban RPC), `/horizon`, otherwise "Other" |
 | SLO | default objective 99.5% of requests are not 5xx. **Error budget used** = failed rate ÷ (1 − target); above 100% the target is missed |
@@ -120,7 +124,7 @@ Every database query is filtered by `project_id` (tenant isolation). Erasing a p
 | `POST /v1/traces` | `x-scfa-key` | Ingest OTLP/HTTP **JSON** traces (protobuf returns 415; bodies over 5 MB return 413) |
 | `GET /v1/metrics?hours=24[&format=csv]` | `x-scfa-key` | The project's own metrics (JSON) or per-route CSV |
 | `GET /v1/global?hours=24` | `x-scfa-admin` | SCF-wide view: per-project totals only |
-| `POST /v1/enroll` | none | Self-service sign-up `{"id","name"}`; returns the key once. `ENROLLMENT=closed` disables it |
+| `POST /v1/enroll` | `x-scfa-admin`, or `x-scfa-invite` | Create a project `{"id","name"}`; returns the key once. **Closed by default** (operators only). `ENROLLMENT=invite` accepts codes listed in `ENROLL_INVITES`; `ENROLLMENT=open` accepts anyone. Invite and open modes are limited to `ENROLL_MAX_PER_HOUR` (default 10) new projects per hour |
 | `GET /v1/admin/projects` | `x-scfa-admin` | List projects |
 | `POST /v1/admin/projects/<id>/rotate-key` | `x-scfa-admin` | New key; the old one stops working at once |
 | `POST /v1/admin/projects/<id>/revoke-key` | `x-scfa-admin` | Key stops working, none issued |
@@ -140,7 +144,7 @@ export OTEL_EXPORTER_OTLP_HEADERS=x-scfa-key=<project key>
 Python 3.11+ only. There is no Node, npm or build step.
 
 ```bash
-python -m pytest -q                  # 17 tests, offline, SQLite
+python -m pytest -q                  # 18 tests, offline, SQLite
 python demo/build_demo.py            # writes demo/data.json (about 1.5 minutes)
 python -m http.server 8000           # open http://localhost:8000/demo/
 ```
@@ -152,7 +156,7 @@ Run the API with a file database so project keys persist between shells (the def
 ```bash
 export DATABASE_URL=local.sqlite ADMIN_TOKEN=dev
 python -m scfa.app                                   # http://localhost:8080
-curl -X POST localhost:8080/v1/enroll -d '{"id":"my-anchor","name":"My Anchor"}'   # prints the key once
+curl -X POST localhost:8080/v1/enroll -H "x-scfa-admin: dev" -d '{"id":"my-anchor","name":"My Anchor"}'   # operator creates a tenant; key shown once
 curl "localhost:8080/v1/metrics?hours=6" -H "x-scfa-key: <KEY>"
 curl localhost:8080/v1/global -H "x-scfa-admin: dev"
 ```
@@ -162,7 +166,8 @@ Full stack with PostgreSQL and Umami (needs Docker; runs locally):
 ```bash
 cd infra
 PG_PASSWORD=localdev UMAMI_SECRET=localdev ADMIN_TOKEN=dev docker compose -p scfa-local up -d --build
-# API on :8080, Umami on :3000 (login admin / umami). Stop and wipe: docker compose -p scfa-local down -v
+# API on :8080, Umami on :3000. Umami's default login is admin / umami: CHANGE IT ON FIRST LOGIN and never expose this stack publicly with the default password.
+# Stop and wipe: docker compose -p scfa-local down -v
 ```
 
 ## RFP coverage
@@ -210,7 +215,7 @@ scfa/app.py        HTTP API: Lambda handler + local dev server
 demo/              build_demo.py (example traffic through the real pipeline), index.html, data.json
 docs/              RFP-COVERAGE, WEB-ANALYTICS, PRIVACY-GDPR, OPERATIONS
 infra/             AWS SAM template (not deployed), docker-compose (Postgres + Umami + API), initdb
-tests/test_core.py 17 tests: SQLite, offline
+tests/test_core.py 18 tests: SQLite, offline
 PROPOSAL.md        draft SCF submission
 ```
 

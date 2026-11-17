@@ -217,7 +217,7 @@ pre{font-family:var(--mono);font-size:.78rem;overflow:auto;max-height:340px;back
     <a href="../docs/PRIVACY-GDPR.md"><code>docs/PRIVACY-GDPR.md</code><span>Privacy, residency, erasure</span></a>
     <a href="../docs/WEB-ANALYTICS.md"><code>docs/WEB-ANALYTICS.md</code><span>Why Umami, script hardening</span></a>
     <a href="../docs/OPERATIONS.md"><code>docs/OPERATIONS.md</code><span>Availability, patching, handover</span></a>
-    <a href="../tests/test_core.py"><code>tests/test_core.py</code><span>17 tests, SQLite, offline</span></a>
+    <a href="../tests/test_core.py"><code>tests/test_core.py</code><span>18 tests, SQLite, offline</span></a>
     <a href="build_demo.py"><code>demo/build_demo.py</code><span>Generates this page's data</span></a>
   </div>
 </section>
@@ -480,7 +480,7 @@ function csv(p, hrs) {
 /* ---------- static technical content ---------- */
 const RFP = [
   ["Pick Umami or GoatCounter and justify it", "d", "docs/WEB-ANALYTICS.md"],
-  ["Self-service enrollment", "b", "POST /v1/enroll · test_self_service_enrollment_and_operator_controls"],
+  ["Self-service enrollment", "b", "POST /v1/enroll, closed by default; invite code or rate limit · test_enrollment_is_closed_by_default_and_gated"],
   ["SCF can remove non-ecosystem projects", "b", "DELETE /v1/admin/projects/<id>"],
   ["Strict tenant isolation, global view for SCF", "b", "scfa/store.py · /v1/global · test_api_ingest_and_metrics_are_tenant_isolated"],
   ["API key generation and revocation by operators", "b", "rotate-key and revoke-key routes · same test as enrollment"],
@@ -506,13 +506,13 @@ const FLOW = [
   ["Parse and normalize", "Keeps only SERVER spans (kind 2): the requests a project's API answered. Reads current and pre-1.20 HTTP attribute names. Strips query strings and replaces wallet addresses, hashes, ids and UUIDs in the path with placeholders such as {account}. IPs and user agents are never read.", "scfa/otlp.py"],
   ["Store", "Two tables: flat request rows (30 days, for exact percentiles and alerts) and hourly rollups of counts and latency histograms (24 months, no trace or span ids). PostgreSQL in production, SQLite for tests. Every query filters by project_id. Keys are stored only as SHA-256 hashes.", "scfa/store.py · scfa/rollup.py"],
   ["Compute metrics", "Request counts, status classes, nearest-rank percentiles (p50/p95/p99), Stellar protocol grouping, SLO and error budget, and time-series buckets, computed on read. Windows up to 30 days read exact rows; longer windows read the hourly rollups.", "scfa/metrics.py"],
-  ["Serve", "GET /v1/metrics (project key), GET /v1/global (admin token), POST /v1/enroll (self-service), and operator routes to list, rotate or revoke keys and delete a project with all its data. The same handler runs as a local server, an AWS Lambda (HTTP API) or in Docker.", "scfa/app.py"],
+  ["Serve", "GET /v1/metrics (project key), GET /v1/global (admin token), POST /v1/enroll (closed by default; operators, invite codes or a rate limit), and operator routes to list, rotate or revoke keys and delete a project with all its data. The same handler runs as a local server, an AWS Lambda (HTTP API) or in Docker.", "scfa/app.py"],
   ["Watch and alert", "Every 5 minutes a scheduled job checks each project's rules (error rate, p95, p99, traffic drop) and posts to a Slack or Discord webhook. The same job purges old raw rows.", "scfa/alerts.py"],
 ];
 const STORED = [["api_rollups", "Hourly counts per project, route, method, status class and latency bucket. Kept 24 months. No trace ids, no span ids."], ["api_requests (columns below)", "Flat request rows, kept 30 days. Used for exact percentiles and the 5-minute alert checks."],
   ["project_id", "Which tenant owns the row; every read is filtered by it."], ["service", "OpenTelemetry service.name, to tell a project's services apart."], ["route", "The route template (for example /sep24/info), with the query string removed."],
   ["method", "HTTP method."], ["status", "HTTP status code; 5xx counts as a failure."], ["duration_ms", "How long the server took, for the percentiles."], ["ts", "Request start time in whole seconds."]];
-const DEFS = [["Failed rate", "Requests with status 500–599 ÷ all requests."], ["p50 / p95 / p99", "Nearest-rank percentile of duration: the value at position ceil(p/100 × n) in the sorted list."],
+const DEFS = [["Failed rate (error_rate)", "Requests with status 500–599 ÷ all requests. The API and the alert rules call it error_rate."], ["p50 / p95 / p99", "Nearest-rank percentile of duration: the value at position ceil(p/100 × n) in the sorted list."],
   ["Availability", "1 − failed rate."], ["SLO target", "99.5% availability (fixed in this prototype)."], ["Error budget used", "Failed rate ÷ (1 − target). Above 100% means the target is missed."],
   ["Protocol group", "First matching route prefix: /sep10, /sep12, /sep24, /sep31, /rpc, /horizon; otherwise Other."], ["Chart bucket", "5 min up to 6 h, 1 h up to 7 days, 6 h up to a month, 1 day beyond."],
   ["Year view percentiles", "From latency histograms (buckets of 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000 ms), so they are the bucket's upper edge: accurate to the bucket, not exact."],
@@ -539,7 +539,7 @@ const GAPS = ["Not deployed anywhere; this page is a static example, not a live 
   "OTLP over protobuf (only JSON works today).", "Automatic Umami setup per project (one website and a read-only share link each).", "This dashboard served live by the API per project (the API serves JSON only).",
   "A load test at 1,000,000 requests per day, and a redundant deployment for 99.99% ingestion.", "A runbook and onboarding guide.", "Per-project SLO targets (fixed at 99.5% for now).",
   "Real pilot projects, demo videos and the applicant's SCF track record."];
-const CMDS = `# 1. run the 17 tests (offline, SQLite)
+const CMDS = `# 1. run the 18 tests (offline, SQLite)
 python -m pytest -q
 
 # 2. start the API with a file database so keys persist
@@ -554,7 +554,7 @@ curl "localhost:8080/v1/metrics?hours=168&format=csv" -H "x-scfa-key: <KEY>"
 curl localhost:8080/v1/global -H "x-scfa-admin: dev"
 
 # 3b. self-service sign-up, then operator controls
-curl -X POST localhost:8080/v1/enroll -d '{"id":"my-wallet","name":"My Wallet"}'
+curl -X POST localhost:8080/v1/enroll -H "x-scfa-admin: dev" -d '{"id":"my-wallet","name":"My Wallet"}'
 curl localhost:8080/v1/admin/projects -H "x-scfa-admin: dev"
 curl -X POST localhost:8080/v1/admin/projects/my-wallet/rotate-key -H "x-scfa-admin: dev"
 curl -X DELETE localhost:8080/v1/admin/projects/my-wallet -H "x-scfa-admin: dev"

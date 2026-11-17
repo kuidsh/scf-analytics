@@ -32,7 +32,7 @@ A single server cannot meet it. The design:
 | Snapshots and backups (estimate) | 5 |
 | **Total** | **about 131 (about 1,570 a year)** |
 
-The earlier single-server design (one 4 GB instance, standard 2 GB database) cost about US$59 a month. Region (Frankfurt proposed) is a deployment setting; confirm availability of the high-availability database and load balancer there before the award. The applicant funds operation; it is not part of the request to SCF.
+The single-server tier (one 4 GB instance, standard 2 GB database, about US$59 a month) is used for staging and demos only, never for production. Region (Frankfurt proposed) is a deployment setting; confirm availability of the high-availability database and load balancer there before the award. The applicant funds operation; it is not part of the request to SCF.
 
 ## Patching within 24 hours
 

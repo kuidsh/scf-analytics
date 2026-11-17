@@ -133,6 +133,9 @@ class Store:
         ).fetchone()
         return {"id": row[0], "name": row[1]} if row else None
 
+    def projects_created_since(self, since_ts: int) -> int:
+        return self._exec("SELECT COUNT(*) FROM projects WHERE created_at >= ?", (since_ts,)).fetchone()[0]
+
     def projects(self):
         rows = self._exec("SELECT id, name, umami_website_id FROM projects ORDER BY id").fetchall()
         return [{"id": r[0], "name": r[1], "umami_website_id": r[2]} for r in rows]

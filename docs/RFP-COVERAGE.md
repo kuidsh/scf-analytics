@@ -9,7 +9,7 @@ Status: **Built** = code and a passing test in this repo. **Designed** = written
 | RFP requirement | Status | Where |
 |---|---|---|
 | Pick Umami or GoatCounter and justify it | Designed | [WEB-ANALYTICS.md](WEB-ANALYTICS.md) |
-| Self-service enrollment | Built | `POST /v1/enroll`, `test_self_service_enrollment_and_operator_controls` |
+| Self-service enrollment | Built | `POST /v1/enroll`, closed by default; opened by invite code or rate limit; `test_enrollment_is_closed_by_default_and_gated` |
 | SCF can remove non-ecosystem projects | Built | `DELETE /v1/admin/projects/<id>` (removes all data) |
 | Strict tenant isolation, global view for SCF | Built | every query filtered by `project_id`; `/v1/global` needs the admin token |
 | Zero fees | Designed | no billing code exists; stated in PROPOSAL.md |

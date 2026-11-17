@@ -15,11 +15,11 @@ A shared analytics service that SCF runs for the projects it funds. Each project
 
 A working prototype exists and is public. Facts, not promises:
 
-| Built and tested (17 automated tests) | Not built yet |
+| Built and tested (18 automated tests) | Not built yet |
 |---|---|
 | OpenTelemetry ingest (JSON), path normalization, per-project keys stored as hashes | Live run against a real Umami; one Umami website per project |
 | Hourly aggregates kept 24 months; exact rows kept 30 days | Web-script hardening (pinned scripts with integrity hashes, bot filtering) |
-| Self-service enrollment; operator remove, key rotate and revoke, full erasure | Dashboard served live by the API (the demo page is static) |
+| Enrollment that is closed by default (operator, invite code or hourly cap); operator remove, key rotate and revoke, full erasure | Dashboard served live by the API (the demo page is static) |
 | Stellar protocol grouping, SLO and error budget, alert rules to Slack/Discord, CSV export | Onboarding guides, runbook, load test, redundant hosting |
 | Umami client covering every RFP web metric | Pilot projects, demo videos |
 
@@ -32,7 +32,7 @@ Requirement-by-requirement status: [docs/RFP-COVERAGE.md](docs/RFP-COVERAGE.md).
 1. **Web analytics.** Umami, unmodified and pinned by version, one website per project, tracker script served from our domain at a versioned path with a Subresource Integrity hash. Metrics: page views, unique visitors, referrers, session duration, bounce rate, country, device, browser.
 2. **API analytics.** Projects dual-export OpenTelemetry to us. We keep only standardized metrics (counts and latency histograms); traces, spans and logs are discarded. Routes are normalized so wallet addresses and ids never reach the database.
 3. **Per-project dashboard** (web and API together), **SCF global view**, **alert rules** with Slack/Discord webhooks, **CSV export**.
-4. **Operations for SCF:** self-service enrollment, remove a non-ecosystem project, issue, rotate and revoke keys.
+4. **Operations for SCF:** enrollment that is closed by default and opened by invite code or an hourly cap, remove a non-ecosystem project, issue, rotate and revoke keys.
 5. **Privacy and security:** documented GDPR position, data residency in a named region, erasure workflow, pinned images and dependencies, software bill of materials, signed releases.
 6. **Hosting, support, handover:** 12 months of operation, measured availability reporting, runbook, tested handover.
 

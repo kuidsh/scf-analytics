@@ -9,25 +9,21 @@
 | Domain for the hosted service (optional) | ~12/yr | Estimate, can wait until award |
 | **Total before award** | **0–12** | |
 
-## AWS, monthly
+## AWS, monthly: single-server tier (staging and demos only)
 
-Prices from the AWS Lightsail pricing page (read 2026-11-15).
+Prices from the AWS Lightsail pricing page (read 2026-11-15). **This tier is for staging and demos. It is not the production design, because one server cannot meet the RFP's 99.99% ingestion target.** The production design is the redundant deployment in the next section.
 
 | Phase | Service | Size | USD/mo |
 |---|---|---|---|
 | Before award (optional live demo) | Lightsail instance | 2 GB RAM, 2 vCPU, 60 GB SSD, 3 TB transfer | 12 |
-| Production | Lightsail instance (Umami + API) | 4 GB RAM, 2 vCPU, 80 GB SSD, 4 TB transfer | 24 |
-| Production | Lightsail managed database, standard | 2 GB RAM, 80 GB SSD, encrypted | 30 |
-| Production | Snapshots / S3 backups | allowance | 5 (estimate) |
-| **Production total** | | | **≈ 59/mo ≈ 708/yr** |
-
-The RFP asks the proposer to host the service for 12 months, so the 12-month
-hosting cost (≈ US$708, budgeted at US$1,200 with headroom for growth) is a line
-in the grant budget, not an out-of-pocket cost.
+| Staging, single server | Lightsail instance (Umami + API) | 4 GB RAM, 2 vCPU, 80 GB SSD, 4 TB transfer | 24 |
+| Staging, single server | Lightsail managed database, standard | 2 GB RAM, 80 GB SSD, encrypted | 30 |
+| Staging, single server | Snapshots / S3 backups | allowance | 5 (estimate) |
+| **Single-server total** | | | **≈ 59/mo ≈ 708/yr** |
 
 Source: https://aws.amazon.com/lightsail/pricing/
 
-## Redundant production deployment (for the RFP availability targets)
+## Production: redundant deployment (the design the proposal budgets)
 
 Prices from the AWS Lightsail pricing page (read 2026-11-17).
 
