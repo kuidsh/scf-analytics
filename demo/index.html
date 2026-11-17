@@ -493,7 +493,7 @@ const RFP = [
   ["API: path normalization with a default rule set", "b", "scfa/otlp.py · test_path_normalization_hides_ids_and_addresses"],
   ["Aggregated views kept at least 24 months", "b", "scfa/rollup.py · test_rollups_outlive_raw_rows_and_serve_long_windows"],
   ["Design target about 1,000,000 requests per day", "o", "Load test not run yet"],
-  ["99.99% ingestion and 99.90% dashboard availability", "d", "docs/OPERATIONS.md (needs redundant hosting; cost not yet priced)"],
+  ["99.99% ingestion and 99.90% dashboard availability", "d", "docs/OPERATIONS.md (redundant deployment designed and priced; not built)"],
   ["Critical and high vulnerabilities patched within 24 hours", "d", "docs/OPERATIONS.md"],
   ["Handover to a community operator in months 6 to 12", "d", "docs/OPERATIONS.md"],
   ["Monorepo with runbooks and onboarding guide", "o", "IaC and tests exist; runbook and guide still to write"],
@@ -537,7 +537,7 @@ const DECISIONS = [
   ["Tolerate both Umami response shapes", "Umami changed its API between versions.", "test_umami_stats_both_shapes"]];
 const GAPS = ["Not deployed anywhere; this page is a static example, not a live service.", "The Umami client has not been run against a live Umami yet; the web numbers here are example values.", "Web hardening (pinned scripts with integrity hashes, bot filtering, renamed endpoints) is designed, not built.",
   "OTLP over protobuf (only JSON works today).", "Automatic Umami setup per project (one website and a read-only share link each).", "This dashboard served live by the API per project (the API serves JSON only).",
-  "A load test at about 10 million spans per day, and a redundant deployment for 99.99% ingestion.", "A runbook and onboarding guide.", "Per-project SLO targets (fixed at 99.5% for now).",
+  "A load test at 1,000,000 requests per day, and a redundant deployment for 99.99% ingestion.", "A runbook and onboarding guide.", "Per-project SLO targets (fixed at 99.5% for now).",
   "Real pilot projects, demo videos and the applicant's SCF track record."];
 const CMDS = `# 1. run the 17 tests (offline, SQLite)
 python -m pytest -q

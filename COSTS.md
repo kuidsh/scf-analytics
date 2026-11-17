@@ -27,6 +27,23 @@ in the grant budget, not an out-of-pocket cost.
 
 Source: https://aws.amazon.com/lightsail/pricing/
 
+## Redundant production deployment (for the RFP availability targets)
+
+Prices from the AWS Lightsail pricing page (read 2026-11-17).
+
+| Service | Size | USD/mo |
+|---|---|---|
+| Lightsail instances x2 (different availability zones) | 4 GB RAM each | 48 |
+| Lightsail load balancer | | 18 |
+| Lightsail managed database, high-availability plan | 2 GB RAM | 60 |
+| Snapshots / backups | allowance | 5 (estimate) |
+| **Total** | | **≈ 131/mo ≈ 1,570/yr** |
+
+The single-server design above (≈ 59/mo) cannot reach the RFP's 99.99% ingestion
+target; this one is designed for it, and availability is measured and published
+rather than guaranteed. The proposal asks SCF to fund development only (US$57,400);
+the 12 months of hosting (≈ 1,600) and support (≈ 5,400) are funded by the applicant.
+
 ## Revenue and payback
 
 SCF Build Awards are paid in XLM in four tranches: 10% on award, 20% at MVP,
@@ -35,7 +52,7 @@ for ≈ US$4.04M of XLM (≈ US$101k average; our division).
 
 | Draft request | Tranche 0 (10%, on award) | Covers |
 |---|---|---|
-| US$64,000 | US$6,400 | Start cost + 108 months of production AWS |
+| US$57,400 (development only) | US$5,740 | Start cost + 43 months of the redundant deployment, or about 97 months of the single server |
 
 Payback depends entirely on winning an award. Timing risk: SCF #45 closed
 2026-08-16 and results were public by 2026-09-30 (~6.5 weeks). If round #47

@@ -15,7 +15,7 @@ This repository is a working prototype and draft proposal for the SCF RFP Track 
 
 ## Contents
 
-[What it does](#what-it-does) · [Architecture](#architecture) · [Request lifecycle](#request-lifecycle) · [Data and privacy](#data-and-privacy) · [Metrics](#metrics) · [API reference](#api-reference) · [Quick start](#quick-start) · [RFP coverage](#rfp-coverage) · [Proposal summary](#proposal-summary) · [Roadmap](#roadmap) · [Repository layout](#repository-layout) · [Licence](#licence)
+[What it does](#what-it-does) · [Architecture](#architecture) · [Request lifecycle](#request-lifecycle) · [Data and privacy](#data-and-privacy) · [Metrics](#metrics) · [API reference](#api-reference) · [Quick start](#quick-start) · [RFP coverage](#rfp-coverage) · [Delivery stages](#delivery-stages) · [Roadmap](#roadmap) · [Repository layout](#repository-layout) · [Licence](#licence)
 
 ## What it does
 
@@ -157,7 +157,7 @@ curl "localhost:8080/v1/metrics?hours=6" -H "x-scfa-key: <KEY>"
 curl localhost:8080/v1/global -H "x-scfa-admin: dev"
 ```
 
-Full stack with PostgreSQL and Umami (needs Docker; local, costs nothing):
+Full stack with PostgreSQL and Umami (needs Docker; runs locally):
 
 ```bash
 cd infra
@@ -175,33 +175,18 @@ Summary (full table with evidence in [docs/RFP-COVERAGE.md](docs/RFP-COVERAGE.md
 | **Designed, not built** | Umami vs GoatCounter rationale ([docs/WEB-ANALYTICS.md](docs/WEB-ANALYTICS.md)) · web hardening: pinned scripts, supply-chain defences, bot mitigation, ad-blocker-resistant naming · GDPR, residency, erasure ([docs/PRIVACY-GDPR.md](docs/PRIVACY-GDPR.md)) · 99.99% ingestion and 99.90% dashboard availability, 24-hour patching, handover ([docs/OPERATIONS.md](docs/OPERATIONS.md)) |
 | **Open** | live run against a real Umami · load test at the 1,000,000 requests/day design target · runbook and onboarding guide · proof of adoption (3 projects on web analytics, 1 on API, demo videos) · applicant track record with SCF/SDF |
 
-## Proposal summary
+## Delivery stages
 
-Full draft: [PROPOSAL.md](PROPOSAL.md). Cost model with sources: [COSTS.md](COSTS.md).
+How the platform reaches the RFP's scope, stage by stage. Each stage says what is built technically and what users can do once it is done. The full draft submission is in [PROPOSAL.md](PROPOSAL.md).
 
-| | |
-|---|---|
-| **Applicant** | David Vega (individual, Mexico) |
-| **Request** | US$64,000 in XLM (our estimate; the RFP states no budget) |
-| **Duration** | 4 months build, then 12 months of hosting and support |
-| **Hosting** | proposer-run for 12 months; handover to a community operator between months 6 and 12 |
-
-| Tranche | Share | Deliverable |
+| Stage | Technical result | What users get |
 |---|---|---|
-| 0 · Award | 10% · US$6,400 | public repo, architecture, Umami-vs-GoatCounter rationale, privacy doc, prototype on staging |
-| 1 · MVP | 20% · US$12,800 | Umami multi-tenant setup, OTLP ingest, per-project dashboard, at least 3 SCF projects on web analytics and 1 on API traffic, demo videos |
-| 2 · Testnet | 30% · US$19,200 | SCF global view, alert rules UI, onboarding guides for JS, Go, Rust and Python OTel SDKs, load test at 10M spans/day |
-| 3 · Launch | 40% · US$25,600 | production on AWS with TLS, backups and a redundant ingestion path, runbook, 10+ projects, handover plan |
+| **T0 · Foundation** (month 1) | Public repository, architecture, privacy and operations documents, the Umami vs GoatCounter rationale, staging environment, first tagged release with a bill of materials | Anyone can read, run and review the design and the code |
+| **T1 · MVP** (month 2.5) | Multi-tenant Umami (one website per project), per-project dashboard served by the API, hardened tracker script with an integrity hash, backup and restore drill | A Stellar project signs up, adds one script and one exporter setting, and sees its own web and API data |
+| **T2 · Pilots and scale** (month 4) | 3 SCF-funded projects on web analytics and 1 on API traffic live, SCF global view and alert rules, onboarding guides for the JavaScript, Go, Rust and Python SDKs, a load test at 1,000,000 requests a day | SCF operators see the whole ecosystem; projects get Slack or Discord alerts and instrument their service from a guide |
+| **T3 · Launch** (month 5) | Production with TLS, backups and a redundant ingestion path, failover test and measured availability report, runbook, tested handover | A reliable public service run by the proposer for 12 months, then handed to a community operator |
 
-| Budget line | USD |
-|---|---|
-| Engineering, 4 months (est. 560 h) | 56,000 |
-| Hosting, 12 months | 1,200 (single-box estimate; **must be re-priced for the RFP's 99.99% ingestion target**) |
-| Support and on-call, months 1-12 (est.) | 5,400 |
-| Security review of auth and data isolation (est.) | 1,400 |
-| **Total** | **64,000** |
-
-**Open risks, stated plainly:** the RFP weights the builder's SCF/SDF track record heavily and excludes unknown builders; other public teams are working on the same RFP; the redundant hosting needed for 99.99% ingestion is not yet priced; XLM price moves between award and payment.
+Possible later features, not in the committed scope: public status page, anomaly alerts, per-project SLO targets, SEP-aware views (for example the SEP-24 deposit flow), Soroban RPC method breakdown, protobuf OTLP, email digests, Prometheus export. See section 3.2 of [PROPOSAL.md](PROPOSAL.md).
 
 ## Roadmap
 
@@ -226,7 +211,7 @@ demo/              build_demo.py (example traffic through the real pipeline), in
 docs/              RFP-COVERAGE, WEB-ANALYTICS, PRIVACY-GDPR, OPERATIONS
 infra/             AWS SAM template (not deployed), docker-compose (Postgres + Umami + API), initdb
 tests/test_core.py 17 tests: SQLite, offline
-PROPOSAL.md        draft SCF submission        COSTS.md  AWS cost model with sources
+PROPOSAL.md        draft SCF submission
 ```
 
 Design rules: core code is Python standard library only (the single production dependency is `psycopg`); every behaviour change has a test; tests run offline.
