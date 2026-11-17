@@ -1,0 +1,2 @@
+# Production only (PostgreSQL). Local runs and tests use the standard library.
+psycopg[binary]==3.2.3

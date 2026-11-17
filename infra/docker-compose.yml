@@ -1,0 +1,36 @@
+# Runs on one Lightsail instance (4 GB, US$24/mo). Not deployed.
+# Web analytics: Umami (MIT). API metrics: scfa (this repo). One PostgreSQL.
+# For production, point DATABASE_URL at a Lightsail managed PostgreSQL instead
+# of the local `db` service, so backups and patching are handled by AWS.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: scfa
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?set PG_PASSWORD}
+      POSTGRES_DB: scfa
+    volumes: [pgdata:/var/lib/postgresql/data]
+    restart: unless-stopped
+
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    environment:
+      DATABASE_URL: postgresql://scfa:${PG_PASSWORD}@db:5432/umami
+      APP_SECRET: ${UMAMI_SECRET:?set UMAMI_SECRET}
+    depends_on: [db]
+    ports: ["3000:3000"]
+    restart: unless-stopped
+
+  scfa:
+    build: ..
+    command: python -m scfa.app
+    environment:
+      DATABASE_URL: postgresql://scfa:${PG_PASSWORD}@db:5432/scfa
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?set ADMIN_TOKEN}
+      PORT: "8080"
+    depends_on: [db]
+    ports: ["8080:8080"]
+    restart: unless-stopped
+
+volumes:
+  pgdata:

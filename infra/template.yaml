@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  SCF Analytics - API-metrics ingest (OTLP/HTTP JSON) and alerting.
+  NOT DEPLOYED. Review costs in COSTS.md before `sam deploy`.
+  The database (PostgreSQL) and Umami run on Lightsail; see docker-compose.yml.
+
+Parameters:
+  DatabaseUrl:
+    Type: String
+    NoEcho: true
+    Description: postgres://user:pass@host:5432/scfa (Lightsail managed PostgreSQL)
+  AdminToken:
+    Type: String
+    NoEcho: true
+    Description: Token for the SCF global view (/v1/global)
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures: [arm64]
+    MemorySize: 256
+    Timeout: 10
+    CodeUri: ../
+    Environment:
+      Variables:
+        DATABASE_URL: !Ref DatabaseUrl
+        ADMIN_TOKEN: !Ref AdminToken
+
+Resources:
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 200
+        ThrottlingRateLimit: 100
+
+  IngestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: scfa.app.lambda_handler
+      Events:
+        Traces:   {Type: HttpApi, Properties: {ApiId: !Ref HttpApi, Path: /v1/traces, Method: POST}}
+        Metrics:  {Type: HttpApi, Properties: {ApiId: !Ref HttpApi, Path: /v1/metrics, Method: GET}}
+        Global:   {Type: HttpApi, Properties: {ApiId: !Ref HttpApi, Path: /v1/global, Method: GET}}
+        Health:   {Type: HttpApi, Properties: {ApiId: !Ref HttpApi, Path: /healthz, Method: GET}}
+
+  AlertsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: scfa.app.alerts_handler
+      Timeout: 60
+      Events:
+        Every5Min:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: rate(5 minutes)
+
+  IngestLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${IngestFunction}
+      RetentionInDays: 14
+
+Outputs:
+  ApiUrl:
+    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com
