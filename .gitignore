@@ -5,3 +5,4 @@ __pycache__/
 .env
 *.sqlite
 .aws-sam/
+CLAUDE.md

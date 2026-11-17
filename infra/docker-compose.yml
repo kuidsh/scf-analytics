@@ -9,7 +9,9 @@ services:
       POSTGRES_USER: scfa
       POSTGRES_PASSWORD: ${PG_PASSWORD:?set PG_PASSWORD}
       POSTGRES_DB: scfa
-    volumes: [pgdata:/var/lib/postgresql/data]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro  # creates the umami database on first start
     restart: unless-stopped
 
   umami:

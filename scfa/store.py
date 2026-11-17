@@ -1,7 +1,7 @@
 """PostgreSQL storage (SQLite for tests and local runs).
 
-Raw requests are kept for RAW_RETENTION_DAYS; per-minute rollups are kept for
-the life of the program. No IPs, user agents or query strings are stored, which
+Raw requests are kept for RAW_RETENTION_DAYS; hourly aggregate rollups (counts and
+latency histograms only, see rollup.py) are kept for ROLLUP_RETENTION_DAYS (24 months). No IPs, user agents or query strings are stored, which
 keeps the API side as privacy-first as the Umami web side.
 """
 from __future__ import annotations
@@ -14,8 +14,10 @@ import time
 from contextlib import contextmanager
 
 from .otlp import ApiRequest
+from .rollup import bucket_of, status_class
 
 RAW_RETENTION_DAYS = 30
+ROLLUP_RETENTION_DAYS = 730  # 24 months, as the RFP asks for aggregated views
 
 SCHEMA = [
     """CREATE TABLE IF NOT EXISTS projects (
@@ -33,6 +35,15 @@ SCHEMA = [
         duration_ms DOUBLE PRECISION NOT NULL,
         ts BIGINT NOT NULL)""",
     "CREATE INDEX IF NOT EXISTS ix_req_project_ts ON api_requests (project_id, ts)",
+    """CREATE TABLE IF NOT EXISTS api_rollups (
+        project_id TEXT NOT NULL,
+        route TEXT NOT NULL,
+        method TEXT NOT NULL,
+        status_class INTEGER NOT NULL,
+        hour BIGINT NOT NULL,
+        bucket INTEGER NOT NULL,
+        count BIGINT NOT NULL,
+        PRIMARY KEY (project_id, route, method, status_class, hour, bucket))""",
     """CREATE TABLE IF NOT EXISTS alert_rules (
         project_id TEXT NOT NULL,
         metric TEXT NOT NULL,
@@ -91,6 +102,29 @@ class Store:
             )
         return raw
 
+    def rotate_key(self, project_id: str) -> str | None:
+        """Issue a new key and invalidate the old one at once. Returns the new key, or None if no such project."""
+        raw = "scfa_" + secrets.token_urlsafe(24)
+        with self.tx():
+            cur = self._exec("UPDATE projects SET key_hash = ? WHERE id = ?", (hash_key(raw), project_id))
+        return raw if cur.rowcount else None
+
+    def revoke_key(self, project_id: str) -> bool:
+        """Invalidate the project's key without issuing a new one (ingest and reads stop at once)."""
+        dead = hash_key("revoked:" + secrets.token_urlsafe(24))  # a hash no key can ever match
+        with self.tx():
+            cur = self._exec("UPDATE projects SET key_hash = ? WHERE id = ?", (dead, project_id))
+        return bool(cur.rowcount)
+
+    def delete_project(self, project_id: str) -> bool:
+        """Remove a tenant and ALL its data (also the erasure workflow). Returns False if it did not exist."""
+        with self.tx():
+            self._exec("DELETE FROM api_requests WHERE project_id = ?", (project_id,))
+            self._exec("DELETE FROM api_rollups WHERE project_id = ?", (project_id,))
+            self._exec("DELETE FROM alert_rules WHERE project_id = ?", (project_id,))
+            cur = self._exec("DELETE FROM projects WHERE id = ?", (project_id,))
+        return bool(cur.rowcount)
+
     def project_for_key(self, raw_key: str | None):
         if not raw_key:
             return None
@@ -105,7 +139,12 @@ class Store:
 
     # requests ------------------------------------------------------------
     def insert_requests(self, project_id: str, reqs: list[ApiRequest]) -> int:
+        roll: dict[tuple, int] = {}
+        for r in reqs:
+            k = (project_id, r.route, r.method, status_class(r.status), r.ts_unix - r.ts_unix % 3600, bucket_of(r.duration_ms))
+            roll[k] = roll.get(k, 0) + 1
         with self.tx():
+            self._upsert_rollups(roll)
             cur = self.conn.cursor()
             cur.executemany(
                 self._sql(
@@ -124,10 +163,38 @@ class Store:
             params += (project_id,)
         return self._exec(sql, params).fetchall()
 
-    def purge_raw(self, now: int | None = None) -> int:
-        cutoff = (now or int(time.time())) - RAW_RETENTION_DAYS * 86400
+    def _upsert_rollups(self, roll: dict[tuple, int]):
+        cur = self.conn.cursor()
+        cur.executemany(
+            self._sql(
+                "INSERT INTO api_rollups (project_id, route, method, status_class, hour, bucket, count) VALUES (?,?,?,?,?,?,?) "
+                "ON CONFLICT (project_id, route, method, status_class, hour, bucket) "
+                "DO UPDATE SET count = api_rollups.count + excluded.count"
+            ),
+            [k + (n,) for k, n in roll.items()],
+        )
+
+    def add_rollups(self, roll: dict[tuple, int]):
+        """Add pre-aggregated counts: {(project_id, route, method, status_class, hour, bucket): count}. For imports and the demo."""
         with self.tx():
-            cur = self._exec("DELETE FROM api_requests WHERE ts < ?", (cutoff,))
+            self._upsert_rollups(roll)
+
+    def rollups_since(self, project_id: str | None, since_ts: int):
+        """Hourly aggregates: (project_id, route, method, status_class, hour, bucket, count)."""
+        sql = ("SELECT project_id, route, method, status_class, hour, bucket, count "
+               "FROM api_rollups WHERE hour >= ?")
+        params: tuple = (since_ts - since_ts % 3600,)
+        if project_id:
+            sql += " AND project_id = ?"
+            params += (project_id,)
+        return self._exec(sql, params).fetchall()
+
+    def purge_raw(self, now: int | None = None) -> int:
+        """Delete raw rows older than RAW_RETENTION_DAYS and rollups older than ROLLUP_RETENTION_DAYS."""
+        now = now or int(time.time())
+        with self.tx():
+            cur = self._exec("DELETE FROM api_requests WHERE ts < ?", (now - RAW_RETENTION_DAYS * 86400,))
+            self._exec("DELETE FROM api_rollups WHERE hour < ?", (now - ROLLUP_RETENTION_DAYS * 86400,))
         return cur.rowcount
 
     # alert rules ---------------------------------------------------------

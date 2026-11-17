@@ -2,127 +2,599 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SCF Analytics Prototype</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: ops console — summary strip, then one panel per project, then code index */
+/* Tokens: validated dataviz reference palette (light + dark). One data hue (blue); status colours are reserved for status. */
 :root{
-  --bg:#f3f5f9; --surface:#ffffff; --fg:#121a2b; --muted:#5b6680; --line:#dde2ec;
-  --accent:#2f4fd8; --accent-soft:#e6ebfd; --ok:#17784a; --warn:#a15c00; --bad:#b4232c; --bad-bg:#fbe4e5;
-  --f-display:"Sora",system-ui,sans-serif; --f-body:"Inter",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,monospace;
+  color-scheme:light;
+  --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink-2:#52514e; --muted:#6b6a65;
+  --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,.10);
+  --series:#2a78d6; --series-wash:rgba(42,120,214,.10); --track:#cde2fb; --soft:#eef4fc;
+  --good:#0ca30c; --good-ink:#006300; --warn:#fab219; --warn-ink:#7a5200; --crit:#d03b3b; --crit-ink:#a62727;
+  --good-bg:#e6f4e6; --warn-bg:#fdf3dc; --crit-bg:#fbe7e7;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0e1320; --surface:#161d2e; --fg:#e8ecf6; --muted:#9aa5bf; --line:#2a3349;
-  --accent:#8ea4ff; --accent-soft:#232d4f; --ok:#6fd3a0; --warn:#f0b65e; --bad:#f2878d; --bad-bg:#3b1e24; color-scheme:dark}}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){
+  color-scheme:dark;
+  --page:#0d0d0d; --surface:#1a1a19; --ink:#f0efec; --ink-2:#c3c2b7; --muted:#a09f98;
+  --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+  --series:#3987e5; --series-wash:rgba(57,135,229,.12); --track:#184f95; --soft:#20262e;
+  --good-ink:#0ca30c; --warn-ink:#fab219; --crit-ink:#ee6b6b;
+  --good-bg:#16281a; --warn-bg:#2b2412; --crit-bg:#2f1a1a}}
 :root[data-theme="dark"]{
-  --bg:#0e1320; --surface:#161d2e; --fg:#e8ecf6; --muted:#9aa5bf; --line:#2a3349;
-  --accent:#8ea4ff; --accent-soft:#232d4f; --ok:#6fd3a0; --warn:#f0b65e; --bad:#f2878d; --bad-bg:#3b1e24; color-scheme:dark}
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
-.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px;display:grid;gap:28px}
-h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.2;text-wrap:balance}
-h1{font-size:1.8rem} h2{font-size:1.15rem} h3{font-size:1rem}
-p{margin:0;max-width:70ch}
-.muted{color:var(--muted)}
-.eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.note{background:var(--accent-soft);border-radius:6px;padding:10px 14px;font-size:.9rem}
-.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.stat{background:var(--surface);padding:14px 16px;display:grid;gap:2px}
-.stat b{font-family:var(--f-mono);font-size:1.4rem;font-weight:500;font-variant-numeric:tabular-nums}
-.panels{display:grid;gap:16px}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:12px;min-width:0}
-.panel header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between}
-.kpis{display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums}
-.pill{font-family:var(--f-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:4px;background:var(--bad-bg);color:var(--bad)}
-.pill.ok{background:var(--accent-soft);color:var(--ok)}
-svg.spark{width:100%;height:64px;display:block}
-.tbl{overflow-x:auto}
+  color-scheme:dark;
+  --page:#0d0d0d; --surface:#1a1a19; --ink:#f0efec; --ink-2:#c3c2b7; --muted:#a09f98;
+  --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+  --series:#3987e5; --series-wash:rgba(57,135,229,.12); --track:#184f95; --soft:#20262e;
+  --good-ink:#0ca30c; --warn-ink:#fab219; --crit-ink:#ee6b6b;
+  --good-bg:#16281a; --warn-bg:#2b2412; --crit-bg:#2f1a1a}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--page);color:var(--ink);font:15px/1.55 var(--sans)}
+a{color:var(--series)}
+h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
+h1{font-size:1.9rem;font-weight:650} h2{font-size:1.3rem;font-weight:650} h3{font-size:1rem;font-weight:650}
+p{margin:0;max-width:72ch}
+code{font-family:var(--mono);font-size:.86em;background:var(--soft);border-radius:4px;padding:1px 5px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px 64px}
+section{display:grid;gap:16px;margin-top:40px}
+.lead{color:var(--ink-2);font-size:1.05rem}
+.small{font-size:.85rem;color:var(--ink-2)}
+.eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.banner{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);border:1px solid var(--ring);border-radius:8px;padding:10px 14px;font-size:.9rem}
+header.top{padding:32px 0 8px;display:grid;gap:12px}
+
+/* sticky filter row: one row above everything it scopes */
+.bar{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--page) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--grid);margin:0 -16px;padding:10px 16px}
+.bar .in{max-width:1040px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;justify-content:space-between}
+nav{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.88rem}
+nav a{color:var(--ink-2);text-decoration:none;padding:4px 0;border-bottom:2px solid transparent}
+nav a:hover,nav a:focus-visible{color:var(--ink);border-color:var(--series);outline:none}
+label.f{display:flex;gap:8px;align-items:center;font-size:.85rem;color:var(--ink-2)}
+select,button{font:inherit;color:var(--ink)}
+select{background:var(--surface);border:1px solid var(--axis);border-radius:8px;padding:6px 10px}
+select:focus-visible,button:focus-visible,summary:focus-visible,.ov:focus-visible{outline:2px solid var(--series);outline-offset:2px}
+
+/* cards, tiles */
+.card{background:var(--surface);border:1px solid var(--grid);border-radius:10px;padding:18px;display:grid;gap:14px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--grid);border-radius:10px;padding:14px 16px;display:grid;gap:4px;align-content:start}
+.tile .v{font-size:1.7rem;font-weight:650;line-height:1.1}
+.tile .u{font-size:1rem;font-weight:500;color:var(--ink-2);margin-left:3px}
+.tile .d{font-size:.82rem;color:var(--ink-2)}
+.hero{display:grid;gap:4px}
+.hero .v{font-size:3.4rem;font-weight:650;line-height:1.05}
+
+/* status chip: icon + label, never colour alone */
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.chip.good{background:var(--good-bg);color:var(--good-ink)} .chip.warn{background:var(--warn-bg);color:var(--warn-ink)} .chip.crit{background:var(--crit-bg);color:var(--crit-ink)}
+
+/* ranked bars */
+.rank{display:grid;gap:6px}
+.rrow{display:grid;grid-template-columns:minmax(120px,210px) 1fr auto;gap:6px 14px;align-items:center;padding:8px 10px;border-radius:8px;border:1px solid transparent;background:none;text-align:left;width:100%;cursor:default}
+.rrow.ov{cursor:pointer} .rrow.ov:hover{background:var(--soft)}
+.rrow.sel{border-color:var(--series);background:var(--soft)}
+.rrow .nm{font-weight:550;overflow-wrap:anywhere}
+.rrow .tr{height:14px;background:transparent;display:flex;align-items:center}
+.rrow .fl{height:14px;background:var(--series);border-radius:0 4px 4px 0;min-width:2px}
+.rrow .val{font-size:.85rem;color:var(--ink-2);text-align:right;display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.rrow .num{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
+@media(max-width:640px){.rrow{grid-template-columns:1fr auto}.rrow .tr{grid-column:1/-1;order:3}}
+
+/* project picker */
+.picker{display:flex;flex-wrap:wrap;gap:8px}
+.picker button{background:var(--surface);border:1px solid var(--axis);border-radius:999px;padding:6px 14px;cursor:pointer}
+.picker button[aria-pressed="true"]{background:var(--series);border-color:var(--series);color:#fff}
+
+/* meter + segmented bar */
+.meter{position:relative;height:12px;border-radius:6px;background:var(--track);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:6px 0 0 6px}
+.meterwrap{position:relative;padding-top:2px}
+.limit{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.seg{display:flex;gap:2px;height:28px}
+.seg span{display:flex;align-items:center;padding-left:8px;font-size:.78rem;font-weight:600;border-radius:4px;color:#fff;min-width:0;white-space:nowrap}
+.seg span.w{color:#0b0b0b}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.84rem;color:var(--ink-2)}
+.legend b{color:var(--ink);font-weight:600}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+
+/* charts */
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ax{stroke:var(--axis);stroke-width:1}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--sans)}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--axis);border-radius:8px;padding:8px 10px;font-size:.82rem;box-shadow:0 4px 16px rgba(0,0,0,.14);min-width:140px;display:none;z-index:3}
+.tip b{display:block;font-size:1rem}
+.tip .k{display:inline-block;width:12px;height:2px;margin-right:6px;vertical-align:middle}
+.tip .t{color:var(--ink-2)}
+.loading{opacity:.55;transition:opacity .15s}
+
+/* tables */
+.tbl{overflow:auto;max-height:340px;border:1px solid var(--grid);border-radius:8px}
 table{border-collapse:collapse;width:100%;font-size:.86rem}
-th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-th{font-family:var(--f-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:500}
-td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
-.files{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
-.files a{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg);text-decoration:none}
-.files a:hover,.files a:focus-visible{border-color:var(--accent);outline:none}
-.files code{font-family:var(--f-mono);font-size:.82rem;color:var(--accent)}
-.files span{font-size:.82rem;color:var(--muted)}
+th,td{text-align:left;padding:7px 12px;border-bottom:1px solid var(--grid);white-space:nowrap;vertical-align:top}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--surface)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+td.wrap2{white-space:normal;min-width:220px}
+details{border:1px solid var(--grid);border-radius:8px;background:var(--surface)}
+details>summary{cursor:pointer;padding:9px 14px;font-weight:550;font-size:.9rem}
+details>div,details>pre{padding:0 14px 14px;margin:0}
+pre{font-family:var(--mono);font-size:.78rem;overflow:auto;max-height:340px;background:var(--soft);border-radius:8px;padding:12px!important;margin:0 14px 14px!important;white-space:pre}
+.btn{background:transparent;border:1px solid var(--series);color:var(--series);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:.85rem;justify-self:start}
+.btn:hover{background:var(--soft)}
+
+/* architecture */
+.flow{list-style:none;margin:0;padding:0;display:grid;gap:0;counter-reset:s}
+.flow li{counter-increment:s;display:grid;grid-template-columns:34px 1fr;gap:12px;position:relative;padding-bottom:18px}
+.flow li::before{content:counter(s);width:28px;height:28px;border-radius:50%;background:var(--series);color:#fff;font-weight:650;font-size:.85rem;display:grid;place-items:center}
+.flow li::after{content:"";position:absolute;left:13px;top:30px;bottom:2px;width:2px;background:var(--grid)}
+.flow li:last-child::after{display:none}
+.flow h3{font-size:.98rem} .flow p{font-size:.88rem;color:var(--ink-2)}
+.pill{font-family:var(--mono);font-size:.78rem;background:var(--soft);border-radius:4px;padding:1px 6px;white-space:nowrap}
+.files{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.files a{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--grid);border-radius:8px;background:var(--surface);color:var(--ink);text-decoration:none}
+.files a:hover,.files a:focus-visible{border-color:var(--series);outline:none}
+.files code{background:none;padding:0;color:var(--series)}
+.files span{font-size:.82rem;color:var(--ink-2)}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header style="display:grid;gap:8px">
-    <span class="eyebrow">Prototype · Stellar Community Fund RFP · Web and API Analytics</span>
-    <h1>SCF Analytics</h1>
-    <p class="muted">API analytics for Stellar ecosystem projects: OpenTelemetry traces in, request volume, status codes and latency percentiles out. Web analytics come from self-hosted Umami beside it.</p>
-    <p class="note"><strong>Example data.</strong> The three projects below are made up. Their traffic was generated by <code>demo/build_demo.py</code> and pushed through the real ingest, storage, metrics and alert code. Nothing is deployed.</p>
-  </header>
 
-  <section style="display:grid;gap:12px">
-    <h2>SCF global view · last 24 h</h2>
-    <div class="strip" id="strip"></div>
-  </section>
+<header class="top">
+  <span class="eyebrow">Prototype · Stellar Community Fund RFP · Web and API Analytics</span>
+  <h1>SCF Analytics</h1>
+  <p class="lead">Shows each Stellar project how its API is doing (traffic, errors, speed) and gives SCF one ecosystem-wide view. Web visitors are measured by self-hosted Umami and shown beside it. Traffic goes in as standard OpenTelemetry traces; nothing personal is stored.</p>
+  <div class="banner"><span aria-hidden="true">ⓘ</span><span><strong>Example data.</strong> The four projects are made up. <code>demo/build_demo.py</code> pushed 30 days of generated API traffic through the real ingest, storage, metrics and alert code; the older months of the year view are generated hourly aggregates. The web-analytics numbers are example values shaped like Umami's API responses and run through the real summary code; they are not read from a live Umami. Nothing is deployed.</span></div>
+</header>
 
-  <section style="display:grid;gap:12px">
-    <h2>Project dashboards</h2>
-    <div class="panels" id="panels"><p class="muted">Loading example data…</p></div>
-  </section>
+<div class="bar"><div class="in">
+  <nav aria-label="Page sections"><a href="#overview">Overview</a><a href="#project">Project detail</a><a href="#rfp">RFP coverage</a><a href="#how">How it works</a><a href="#verify">Verify it yourself</a><a href="#code">Code</a></nav>
+  <label class="f">Time range
+    <select id="range" aria-label="Time range">
+      <option value="1">Last 1 hour</option><option value="6">Last 6 hours</option><option value="12">Last 12 hours</option>
+      <option value="24" selected>Last 24 hours</option><option value="168">Last 7 days</option>
+      <option value="720">Last month</option><option value="8760">Last year</option>
+    </select></label>
+</div></div>
 
-  <section style="display:grid;gap:12px">
-    <h2>Code</h2>
-    <p class="muted">Python standard library only; <code>psycopg</code> in production. 11 pytest tests pass on SQLite.</p>
-    <div class="files">
-      <a href="../README.md"><code>README.md</code><span>Setup, run, deploy steps</span></a>
-      <a href="../PROPOSAL.md"><code>PROPOSAL.md</code><span>Draft SCF submission, tranches, budget</span></a>
-      <a href="../COSTS.md"><code>COSTS.md</code><span>AWS cost model with sources</span></a>
-      <a href="../scfa/otlp.py"><code>scfa/otlp.py</code><span>OTLP JSON → request records</span></a>
-      <a href="../scfa/store.py"><code>scfa/store.py</code><span>PostgreSQL storage, hashed keys</span></a>
-      <a href="../scfa/metrics.py"><code>scfa/metrics.py</code><span>Percentiles, status classes, global view</span></a>
-      <a href="../scfa/alerts.py"><code>scfa/alerts.py</code><span>Threshold rules and webhooks</span></a>
-      <a href="../scfa/umami.py"><code>scfa/umami.py</code><span>Umami stats client</span></a>
-      <a href="../scfa/app.py"><code>scfa/app.py</code><span>HTTP API, Lambda handlers</span></a>
-      <a href="../infra/template.yaml"><code>infra/template.yaml</code><span>AWS SAM (not deployed)</span></a>
-      <a href="../infra/docker-compose.yml"><code>infra/docker-compose.yml</code><span>Lightsail: Umami + API + Postgres</span></a>
-      <a href="../tests/test_core.py"><code>tests/test_core.py</code><span>Test suite</span></a>
-      <a href="build_demo.py"><code>demo/build_demo.py</code><span>Generates this page's data</span></a>
-    </div>
-  </section>
+<main id="app">
+  <section id="overview"><p class="small">Loading example data…</p></section>
+</main>
+
+<section id="rfp">
+  <h2>Coverage of the SCF RFP</h2>
+  <p>Each requirement of the RFP "Web and API Analytics for Stellar Ecosystem Projects", with its honest status. <span class="chip good"><span aria-hidden="true">✓</span>Built</span> means code and a passing test exist; <span class="chip warn"><span aria-hidden="true">!</span>Designed</span> means written down but not implemented; <span class="chip crit"><span aria-hidden="true">✕</span>Open</span> means not done. This mirrors <a href="../docs/RFP-COVERAGE.md">docs/RFP-COVERAGE.md</a>; re-read the <a href="https://stellar.gitbook.io/scf-handbook/scf-awards/build-award/rfp-track#current-open-rfps">official RFP</a> before relying on it.</p>
+  <div class="card"><div class="tbl" style="max-height:none"><table><thead><tr><th>RFP requirement</th><th>Status</th><th>Where to check</th></tr></thead><tbody id="rfptbl"></tbody></table></div>
+    <p class="small" id="rfpsum"></p></div>
+</section>
+
+<section id="how">
+  <h2>How it works</h2>
+  <p>One request travels through seven steps. Each step names the file that does it, so you can read the code behind every claim on this page.</p>
+  <div class="card"><ol class="flow" id="flow"></ol></div>
+  <div class="grid2">
+    <div class="card"><h3>What is stored for each API request</h3>
+      <div class="tbl"><table><thead><tr><th>Column</th><th>Why</th></tr></thead><tbody id="stored"></tbody></table></div>
+      <p class="small"><strong>Never stored:</strong> IP addresses, user agents, query strings, request or response bodies, headers, user or wallet identifiers. Query strings are removed in <code>scfa/otlp.py</code> before anything is saved.</p></div>
+    <div class="card"><h3>How each number is calculated</h3>
+      <div class="tbl"><table><thead><tr><th>Number</th><th>Definition</th></tr></thead><tbody id="defs"></tbody></table></div></div>
+  </div>
+  <div class="card"><h3>Design decisions and the test that proves each one</h3>
+    <div class="tbl"><table><thead><tr><th>Decision</th><th>Why</th><th>Test in <code>tests/test_core.py</code></th></tr></thead><tbody id="decisions"></tbody></table></div></div>
+  <div class="card"><h3>Not built yet (so you know what this prototype does not claim)</h3><ul id="gaps" style="margin:0;padding-left:20px;display:grid;gap:4px"></ul></div>
+</section>
+
+<section id="verify">
+  <h2>Verify it yourself</h2>
+  <p>Everything runs on your machine with Python only. No account, no cloud, no cost.</p>
+  <div class="card"><pre id="cmds"></pre></div>
+</section>
+
+<section id="code">
+  <h2>Code</h2>
+  <p class="small">Python standard library only; <code>psycopg</code> is the single production dependency. Apache-2.0. Umami (MIT) runs unmodified beside it.</p>
+  <div class="files">
+    <a href="../README.md"><code>README.md</code><span>Setup, run, deploy steps</span></a>
+    <a href="../PROPOSAL.md"><code>PROPOSAL.md</code><span>Draft SCF submission, tranches, budget</span></a>
+    <a href="../COSTS.md"><code>COSTS.md</code><span>AWS cost model with sources</span></a>
+    <a href="../scfa/otlp.py"><code>scfa/otlp.py</code><span>OTLP JSON → request records</span></a>
+    <a href="../scfa/store.py"><code>scfa/store.py</code><span>PostgreSQL storage, hashed keys, retention</span></a>
+    <a href="../scfa/metrics.py"><code>scfa/metrics.py</code><span>Percentiles, protocols, SLO, global view</span></a>
+    <a href="../scfa/alerts.py"><code>scfa/alerts.py</code><span>Threshold rules and webhooks</span></a>
+    <a href="../scfa/umami.py"><code>scfa/umami.py</code><span>Umami stats client</span></a>
+    <a href="../scfa/app.py"><code>scfa/app.py</code><span>HTTP API, Lambda handlers</span></a>
+    <a href="../infra/template.yaml"><code>infra/template.yaml</code><span>AWS SAM (not deployed)</span></a>
+    <a href="../infra/docker-compose.yml"><code>infra/docker-compose.yml</code><span>Umami + API + Postgres</span></a>
+    <a href="../scfa/rollup.py"><code>scfa/rollup.py</code><span>24-month hourly aggregates</span></a>
+    <a href="../docs/RFP-COVERAGE.md"><code>docs/RFP-COVERAGE.md</code><span>Requirement-by-requirement status</span></a>
+    <a href="../docs/PRIVACY-GDPR.md"><code>docs/PRIVACY-GDPR.md</code><span>Privacy, residency, erasure</span></a>
+    <a href="../docs/WEB-ANALYTICS.md"><code>docs/WEB-ANALYTICS.md</code><span>Why Umami, script hardening</span></a>
+    <a href="../docs/OPERATIONS.md"><code>docs/OPERATIONS.md</code><span>Availability, patching, handover</span></a>
+    <a href="../tests/test_core.py"><code>tests/test_core.py</code><span>17 tests, SQLite, offline</span></a>
+    <a href="build_demo.py"><code>demo/build_demo.py</code><span>Generates this page's data</span></a>
+  </div>
+</section>
 </div>
 
 <script>
-const fmt = n => n.toLocaleString("en-US");
-const pct = x => (x * 100).toFixed(2) + "%";
-function spark(series) {
-  const W = 600, H = 64, pad = 4, max = Math.max(...series.map(s => s.requests), 1);
-  const x = i => pad + i * (W - 2 * pad) / Math.max(series.length - 1, 1);
-  const y = v => H - pad - v / max * (H - 2 * pad);
-  const line = series.map((s, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(s.requests).toFixed(1)}`).join("");
-  const area = `${line}L${x(series.length - 1)},${H - pad}L${x(0)},${H - pad}Z`;
-  const errs = series.map((s, i) => s.errors ? `<rect x="${(x(i) - 3).toFixed(1)}" y="${(H - pad - Math.min(30, s.errors / 2)).toFixed(1)}" width="6" height="${Math.min(30, s.errors / 2).toFixed(1)}" fill="var(--bad)" opacity=".8"/>` : "").join("");
-  const last = series[series.length - 1];
-  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Requests per hour over 24 hours; red bars show 5xx errors">
-    <path d="${area}" fill="var(--accent-soft)"/><path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/>
-    ${errs}<circle cx="${x(series.length - 1)}" cy="${y(last.requests)}" r="3" fill="var(--accent)"/></svg>`;
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+const fmt = n => Number(n).toLocaleString("en-US");
+const pct = (x, d = 2) => (x * 100).toFixed(d) + "%";
+const ms = v => v >= 1000 ? (v / 1000).toFixed(2) + " s" : Math.round(v) + " ms";
+const LABEL = {1: "hour", 6: "6 hours", 12: "12 hours", 24: "24 hours", 168: "7 days", 720: "30 days", 8760: "year"};
+const BUCKET = {1: "5 minutes", 6: "5 minutes", 12: "hour", 24: "hour", 168: "hour", 720: "6 hours", 8760: "day"};
+const STATUS_ICON = {good: "✓", warn: "!", crit: "✕"};
+
+/* DOM helper: all text goes through textContent, so data can never inject markup. */
+function el(tag, props = {}, ...kids) {
+  const n = props.ns ? document.createElementNS(NS, tag) : document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "ns" || v == null) continue;
+    if (k === "class") n.setAttribute("class", v);
+    else if (k === "text") n.textContent = v;
+    else if (k === "style") Object.assign(n.style, v);
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v);
+  }
+  for (const c of kids.flat()) if (c != null) n.append(c.nodeType ? c : document.createTextNode(String(c)));
+  return n;
 }
+const svg = (tag, props, ...k) => el(tag, {ns: 1, ...props}, ...k);
+const chip = (kind, text) => el("span", {class: "chip " + kind}, el("span", {"aria-hidden": "true", text: STATUS_ICON[kind]}), text);
+const tile = (label, value, unit, desc) => el("div", {class: "tile"},
+  el("span", {class: "eyebrow", text: label}),
+  el("div", {class: "v"}, value, unit ? el("span", {class: "u", text: unit}) : null),
+  el("span", {class: "d", text: desc}));
+
+const state = {hrs: "24", pid: null, data: null};
+
+/* ---------- charts: SVG, crosshair + tooltip, keyboard arrows, table twin ---------- */
+function timeLabel(t, hrs, long) {
+  const d = new Date(t * 1000);
+  if (long) return d.toLocaleString([], {weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"});
+  return hrs <= 24 ? d.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})
+       : hrs <= 168 ? d.toLocaleString([], {weekday: "short", hour: "2-digit"})
+       : d.toLocaleDateString([], {month: "short", day: "numeric"});
+}
+function niceMax(v) {
+  if (v <= 0) return 1;
+  const p = 10 ** Math.floor(Math.log10(v)), f = v / p;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p;
+}
+const compact = n => n >= 10000 ? (n / 1000).toFixed(n % 1000 ? 1 : 0) + "K" : fmt(n);
+
+function drawChart(host, series, hrs, o) {
+  host.textContent = "";
+  if (!series.length) { host.append(el("p", {class: "small", text: "No traffic in this window."})); return; }
+  const W = Math.max(host.clientWidth, 280), H = o.h || 190, m = {l: 46, r: 14, t: 10, b: 26};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const vals = series.map(s => s[o.key]), max = niceMax(Math.max(...vals));
+  const x = i => m.l + (series.length === 1 ? iw / 2 : i * iw / (series.length - 1));
+  const xb = i => m.l + (i + .5) * iw / series.length;
+  const y = v => m.t + ih - v / max * ih;
+  const s = svg("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": o.aria});
+  for (let i = 0; i <= 4; i++) {
+    const v = max * i / 4;
+    s.append(svg("line", {class: i ? "gl" : "ax", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v)}),
+             svg("text", {x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: compact(Math.round(v))}));
+  }
+  const ticks = Math.min(5, series.length);
+  for (let k = 0; k < ticks; k++) {
+    const i = ticks === 1 ? 0 : Math.round(k * (series.length - 1) / (ticks - 1));
+    s.append(svg("text", {x: o.bars ? xb(i) : x(i), y: H - 6, "text-anchor": k === 0 ? "start" : k === ticks - 1 ? "end" : "middle", text: timeLabel(series[i].t, hrs)}));
+  }
+  const px = o.bars ? xb : x;
+  if (o.bars) {
+    const bw = Math.min(24, iw / series.length * .7);
+    series.forEach((p, i) => { if (!p[o.key]) return;
+      const h = Math.max(2, ih - (y(p[o.key]) - m.t)), r = Math.min(4, h, bw / 2), x0 = xb(i) - bw / 2, y0 = y(p[o.key]);
+      s.append(svg("path", {fill: o.color, d: `M${x0},${y0 + h}V${y0 + r}Q${x0},${y0} ${x0 + r},${y0}H${x0 + bw - r}Q${x0 + bw},${y0} ${x0 + bw},${y0 + r}V${y0 + h}Z`}));
+    });
+  } else {
+    const line = series.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p[o.key]).toFixed(1)}`).join("");
+    s.append(svg("path", {d: `${line}L${x(series.length - 1)},${m.t + ih}L${x(0)},${m.t + ih}Z`, fill: "var(--series-wash)"}),
+             svg("path", {d: line, fill: "none", stroke: o.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round"}));
+  }
+  const cross = svg("line", {y1: m.t, y2: m.t + ih, stroke: "var(--axis)", "stroke-width": 1, visibility: "hidden"});
+  const dot = svg("circle", {r: 5, fill: o.color, stroke: "var(--surface)", "stroke-width": 2, visibility: "hidden"});
+  const hit = svg("rect", {x: m.l, y: m.t, width: iw, height: ih, fill: "transparent", tabindex: 0, "aria-label": o.aria + " Use left and right arrow keys to read each value."});
+  s.append(cross, dot, hit);
+  const tip = el("div", {class: "tip", role: "status"});
+  host.append(s, tip);
+  let cur = series.length - 1;
+  const show = i => {
+    cur = Math.max(0, Math.min(series.length - 1, i));
+    const p = series[cur], cx = px(cur);
+    cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.setAttribute("visibility", "visible");
+    dot.setAttribute("cx", cx); dot.setAttribute("cy", y(p[o.key])); dot.setAttribute("visibility", "visible");
+    tip.textContent = "";
+    tip.append(el("b", {text: fmt(p[o.key]) + " " + o.unit}),
+               el("div", {class: "t"}, el("span", {class: "k", style: {background: o.color}}), o.name),
+               el("div", {class: "t", text: timeLabel(p.t, hrs, true) + " · per " + BUCKET[hrs]}));
+    tip.style.display = "block";
+    const tw = tip.offsetWidth, left = cx + 12 + tw > W ? cx - tw - 12 : cx + 12;
+    tip.style.left = Math.max(0, left) + "px"; tip.style.top = (m.t + 4) + "px";
+  };
+  const off = () => { cross.setAttribute("visibility", "hidden"); dot.setAttribute("visibility", "hidden"); tip.style.display = "none"; };
+  hit.addEventListener("pointermove", e => {
+    const r = hit.getBoundingClientRect(), f = (e.clientX - r.left) / r.width;
+    show(o.bars ? Math.floor(f * series.length) : Math.round(f * (series.length - 1)));
+  });
+  hit.addEventListener("pointerleave", off); hit.addEventListener("blur", off);
+  hit.addEventListener("focus", () => show(cur));
+  hit.addEventListener("keydown", e => {
+    if (e.key === "ArrowRight") { show(cur + 1); e.preventDefault(); }
+    if (e.key === "ArrowLeft") { show(cur - 1); e.preventDefault(); }
+  });
+}
+
+/* ---------- reusable blocks ---------- */
+function rankRows(rows, maxV, opts = {}) {
+  const unit = opts.unit || "req";
+  return el("div", {class: "rank"}, rows.map(r => {
+    const row = el(opts.onpick ? "button" : "div", {class: "rrow" + (opts.onpick ? " ov" : "") + (r.selected ? " sel" : ""), type: opts.onpick ? "button" : null,
+      "aria-pressed": opts.onpick ? String(!!r.selected) : null, onclick: opts.onpick ? () => opts.onpick(r.id) : null},
+      el("span", {class: "nm", text: r.name}),
+      el("span", {class: "tr"}, el("span", {class: "fl", style: {width: Math.max(0.5, r.value / maxV * 100) + "%"}})),
+      el("span", {class: "val"}, el("span", {class: "num", text: fmt(r.value) + " " + unit}), r.extra));
+    return row;
+  }));
+}
+function sloKind(slo) { return !slo.met ? "crit" : slo.budget_used > 0.8 ? "warn" : "good"; }
+function sloChip(slo) {
+  const k = sloKind(slo);
+  return chip(k, k === "crit" ? "Over error budget" : k === "warn" ? "Budget nearly used" : "Within target");
+}
+
+/* ---------- overview ---------- */
+function renderOverview(d, hrs) {
+  const R = d.ranges[hrs], g = R.global, ps = Object.values(R.projects);
+  const ok = ps.filter(p => p.slo.met).length;
+  const maxV = Math.max(...g.projects.map(p => p.requests), 1);
+  const alertN = d.alerts.length;
+  const sec = $("overview"); sec.textContent = "";
+  const roll = Object.values(R.projects).some(p => p.source === "rollup");
+  sec.append(
+    el("h2", {text: "SCF ecosystem overview · last " + LABEL[hrs]}),
+    el("p", {class: "small", text: "What SCF sees: totals across every enrolled project, with no route-level detail. Select a project row to open its dashboard."}),
+    el("div", {class: "card"},
+      el("div", {class: "hero"}, el("span", {class: "eyebrow", text: "API requests handled"}),
+        el("div", {class: "v", text: fmt(g.requests)}),
+        el("span", {class: "small", text: "Server requests answered by " + g.active_projects + " example projects in this window."}))),
+    el("div", {class: "tiles"},
+      tile("Failed requests", pct(g.error_rate), "", "Share that returned a server error (HTTP 5xx)."),
+      tile("Slow-request threshold", (roll ? "≈ " : "") + ms(g.p95_ms), "", "p95: 95 of every 100 requests finished faster than this."),
+      tile("Web visits", fmt(Object.values(R.web).reduce((a, w) => a + w.visits, 0)), "", "Visits to the projects' websites, measured by Umami (example values)."),
+      tile("Projects meeting target", ok + " of " + ps.length, "", "Each project's reliability goal is 99.5% successful requests."),
+      tile("Alerts firing", String(alertN), "", alertN ? "A project crossed an alert threshold in its rule window." : "No project is over a threshold.")),
+    roll ? el("p", {class: "banner"}, el("span", {"aria-hidden": "true", text: "ⓘ"}), el("span", {text: "This window is longer than the 30 days of raw rows, so it is built from the hourly aggregates kept for 24 months. Counts are exact; latency percentiles are accurate to the nearest latency bucket (shown with ≈)."})) : null,
+    el("div", {class: "card"}, el("h3", {text: "Projects by traffic"}),
+      rankRows(g.projects.map(p => { const s = R.projects[p.project].slo;
+        return {id: p.project, name: p.name, value: p.requests, selected: p.project === state.pid, extra: sloChip(s)}; }), maxV, {onpick: pickProject})),
+    alertN ? el("div", {class: "card"}, el("h3", {text: "Alerts firing now"}),
+      el("p", {class: "small", text: "Rules are checked every 5 minutes. When one fires, the message below is posted to the project's Slack or Discord webhook."}),
+      d.alerts.map(a => el("div", {style: {display: "grid", gap: "6px"}},
+        chip("crit", "Alert"),
+        el("p", {text: (d.names[a.project_id] || a.project_id) + ": " + ({error_rate: "failed-request rate", p95_ms: "p95 latency", p99_ms: "p99 latency", requests_min: "request volume"}[a.metric] || a.metric) + " is " + (a.metric === "error_rate" ? pct(a.value) : a.value) + ", above the " + (a.metric === "error_rate" ? pct(a.threshold) : a.threshold) + " threshold."}),
+        el("code", {text: `[SCF Analytics] ${a.project_id}: ${a.metric} = ${a.value} (threshold ${a.threshold}, last ${a.window_min} min)`})))) : null);
+}
+
+/* ---------- project detail ---------- */
+function pickProject(id) { state.pid = id; renderAll(); $("project").scrollIntoView(); }
+
+function renderProject(d, hrs) {
+  const R = d.ranges[hrs], p = R.projects[state.pid], slo = p.slo, k = sloKind(slo);
+  const allowed = Math.round((1 - slo.target) * p.requests), failed = p.status_classes["5xx"] || 0;
+  let sec = $("project"); if (!sec) { sec = el("section", {id: "project"}); $("app").append(sec); }
+  sec.textContent = "";
+  const verdict = !p.requests ? "No traffic in this window."
+    : slo.met ? `${p.project.name} is meeting its reliability target: ${pct(slo.availability)} of requests succeeded, and the goal is ${pct(slo.target, 1)}.`
+              : `${p.project.name} is missing its reliability target: ${pct(slo.availability)} of requests succeeded, and the goal is ${pct(slo.target, 1)}.`;
+  const sc = ["2xx", "3xx", "4xx", "5xx"].filter(c => p.status_classes[c]);
+  const seg = {"2xx": ["Success (2xx)", "var(--good)", ""], "3xx": ["Redirect (3xx)", "var(--axis)", "w"], "4xx": ["Client error (4xx)", "var(--warn)", "w"], "5xx": ["Server error (5xx)", "var(--crit)", ""]};
+  const tr = el("tbody");
+  p.routes.forEach(r => tr.append(el("tr", {}, el("td", {}, el("code", {text: r.method + " " + r.route})), el("td", {text: r.protocol}),
+    el("td", {class: "n", text: fmt(r.requests)}), el("td", {class: "n", text: pct(r.error_rate)}), el("td", {class: "n", text: ms(r.p95_ms)}))));
+  const pmax = Math.max(...p.protocols.map(x => x.requests), 1);
+  const tableRows = el("tbody");
+  p.series.forEach(s => tableRows.append(el("tr", {}, el("td", {text: timeLabel(s.t, hrs, true)}), el("td", {class: "n", text: fmt(s.requests)}), el("td", {class: "n", text: fmt(s.errors)}))));
+  const lineHost = el("div", {class: "chart"}), errHost = el("div", {class: "chart"});
+  const apiJson = JSON.stringify({...p, series: `[${p.series.length} points omitted here]`}, null, 2);
+
+  sec.append(
+    el("h2", {text: "Project dashboard"}),
+    el("div", {class: "picker", role: "group", "aria-label": "Choose a project"}, Object.values(R.projects).map(q =>
+      el("button", {type: "button", "aria-pressed": String(q.project.id === state.pid), text: q.project.name, onclick: () => pickProject(q.project.id)}))),
+    el("div", {class: "card"},
+      el("div", {style: {display: "flex", flexWrap: "wrap", gap: "8px 14px", alignItems: "center"}}, el("h3", {text: p.project.name}), sloChip(slo)),
+      el("p", {text: verdict})),
+    el("div", {class: "tiles"},
+      tile("Requests", fmt(p.requests), "", "Server requests this API answered."),
+      tile("Failed", pct(p.error_rate), "", fmt(failed) + " of " + fmt(p.requests) + " returned a server error (5xx)."),
+      tile("Typical speed", (p.source === "rollup" ? "≈ " : "") + Math.round(p.p50_ms), "ms", "p50: half of requests were faster than this."),
+      tile("Slow requests", (p.source === "rollup" ? "≈ " : "") + Math.round(p.p95_ms), "ms", "p95: 1 request in 20 took longer."),
+      tile("Worst cases", (p.source === "rollup" ? "≈ " : "") + Math.round(p.p99_ms), "ms", "p99: 1 request in 100 took longer.")),
+    webCard(R.web[state.pid], p.project.name),
+    el("div", {class: "grid2"},
+      el("div", {class: "card"}, el("h3", {text: "Reliability target (SLO)"}),
+        el("p", {class: "small", text: `Goal: at least ${pct(slo.target, 1)} of requests succeed (no 5xx). The ${pct(1 - slo.target, 1)} that may fail is the error budget.`}),
+        el("div", {class: "meterwrap"}, el("div", {class: "meter", role: "img", "aria-label": `Error budget used: ${Math.round(slo.budget_used * 100)} percent`},
+            el("i", {style: {width: Math.min(100, slo.budget_used * 50) + "%", background: `var(--${k === "crit" ? "crit" : k === "warn" ? "warn" : "good"})`}})),
+          el("span", {class: "limit", style: {left: "50%"}, title: "100% of budget"})),
+        el("div", {style: {display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "4px 12px", fontSize: ".85rem"}},
+          el("span", {text: `Budget used: ${Math.round(slo.budget_used * 100)}%`}), el("span", {class: "small", text: "Black line = the whole budget"})),
+        el("p", {class: "small", text: `${fmt(failed)} requests failed; the budget allowed about ${fmt(allowed)}. Success rate ${pct(slo.availability)}.`})),
+      el("div", {class: "card"}, el("h3", {text: "What the responses were"}),
+        el("p", {class: "small", text: "HTTP status classes. Grey, amber and red are a fixed meaning (OK, caller mistake, our fault), not decoration."}),
+        el("div", {class: "seg", role: "img", "aria-label": sc.map(c => `${seg[c][0]} ${fmt(p.status_classes[c])}`).join(", ")},
+          sc.map(c => { const w = p.status_classes[c] / p.requests * 100;
+            return el("span", {class: seg[c][2], style: {flex: String(p.status_classes[c]), background: seg[c][1]}, title: `${seg[c][0]}: ${fmt(p.status_classes[c])} (${w.toFixed(1)}%)`, text: w >= 9 ? w.toFixed(0) + "%" : ""}); })),
+        el("div", {class: "legend"}, sc.map(c => el("span", {}, el("i", {class: "sw", style: {background: seg[c][1]}}), seg[c][0] + " ", el("b", {text: fmt(p.status_classes[c])})))))),
+    el("div", {class: "card"}, el("h3", {text: `Requests per ${BUCKET[hrs]}`}),
+      el("p", {class: "small", text: "Traffic over time. Hover or use the arrow keys for exact values. Times are in your local time zone."}), lineHost,
+      el("h3", {text: `Failed requests (5xx) per ${BUCKET[hrs]}`}), errHost,
+      el("details", {}, el("summary", {text: "View the chart data as a table"}),
+        el("div", {class: "tbl"}, el("table", {}, el("thead", {}, el("tr", {}, el("th", {text: "Time"}), el("th", {class: "n", text: "Requests"}), el("th", {class: "n", text: "5xx"}))), tableRows)))),
+    el("div", {class: "card"}, el("h3", {text: "Traffic by Stellar protocol"}),
+      el("p", {class: "small", text: "Routes are grouped by what they do on Stellar (login, KYC, deposits, Soroban RPC, Horizon) so an operator can see which part of the service is busy or failing."}),
+      rankRows(p.protocols.map(x => ({id: x.protocol, name: x.protocol, value: x.requests,
+        extra: el("span", {class: "small", text: `${pct(x.error_rate)} failed · p95 ${ms(x.p95_ms)}`})})), pmax)),
+    el("div", {class: "card"}, el("h3", {text: "Routes"}),
+      el("div", {class: "tbl"}, el("table", {}, el("thead", {}, el("tr", {}, ["Route", "Protocol"].map(h => el("th", {text: h})), ["Requests", "Failed (5xx)", "p95"].map(h => el("th", {class: "n", text: h})))), tr)),
+      el("button", {class: "btn", type: "button", text: "Download routes as CSV", onclick: () => csv(p, hrs)})),
+    el("details", {}, el("summary", {text: "See the raw API response behind this dashboard"}),
+      el("p", {class: "small", style: {padding: "0 14px 8px"}, text: "This is the JSON the backend returns for GET /v1/metrics?hours=" + hrs + " (the chart series is shortened here). Anyone with the project key gets exactly this."}),
+      el("pre", {text: apiJson})));
+  drawChart(lineHost, p.series, hrs, {key: "requests", name: "Requests", unit: "requests", color: "var(--series)", aria: `Line chart of requests per ${BUCKET[hrs]}.`});
+  drawChart(errHost, p.series, hrs, {key: "errors", name: "Failed (5xx)", unit: "failed", color: "var(--crit)", bars: true, h: 130, aria: `Bar chart of failed requests per ${BUCKET[hrs]}.`});
+  state.redraw = () => { drawChart(lineHost, p.series, hrs, {key: "requests", name: "Requests", unit: "requests", color: "var(--series)", aria: `Line chart of requests per ${BUCKET[hrs]}.`});
+    drawChart(errHost, p.series, hrs, {key: "errors", name: "Failed (5xx)", unit: "failed", color: "var(--crit)", bars: true, h: 130, aria: `Bar chart of failed requests per ${BUCKET[hrs]}.`}); };
+}
+function webCard(w, name) {
+  const list = (title, items) => el("div", {}, el("h3", {text: title}), rankRows(items.map(i => ({id: i.name, name: i.name, value: i.count})), Math.max(...items.map(i => i.count), 1), {unit: "visits"}));
+  const mins = Math.floor(w.avg_session_s / 60), secs = Math.round(w.avg_session_s % 60);
+  return el("div", {class: "card"}, el("h3", {text: "Website visitors (Umami)"}),
+    el("p", {class: "small", text: "Who visits " + name + "'s website, counted without cookies or personal data. Example values shaped like Umami's API responses and produced by scfa/umami.py; not read from a live Umami."}),
+    el("div", {class: "tiles"},
+      tile("Page views", fmt(w.pageviews), "", "Pages loaded."),
+      tile("Unique visitors", fmt(w.visitors), "", "Distinct people, counted by a privacy-safe hash."),
+      tile("Bounce rate", pct(w.bounce_rate, 1), "", "Visits that left after one page."),
+      tile("Session length", mins + "m " + secs + "s", "", "Average time per visit.")),
+    el("div", {class: "grid2"}, list("Where visitors come from", w.referrers), list("Countries", w.countries), list("Browsers", w.browsers), list("Devices", w.devices)));
+}
+function csv(p, hrs) {
+  const rows = [["method", "route", "protocol", "requests", "error_rate_5xx", "p95_ms"], ...p.routes.map(r => [r.method, r.route, r.protocol, r.requests, r.error_rate, r.p95_ms])];
+  const a = el("a", {href: URL.createObjectURL(new Blob([rows.map(r => r.join(",")).join(String.fromCharCode(10))], {type: "text/csv"})), download: `${p.project.id}-routes-${hrs}h.csv`});
+  a.click();
+}
+
+/* ---------- static technical content ---------- */
+const RFP = [
+  ["Pick Umami or GoatCounter and justify it", "d", "docs/WEB-ANALYTICS.md"],
+  ["Self-service enrollment", "b", "POST /v1/enroll · test_self_service_enrollment_and_operator_controls"],
+  ["SCF can remove non-ecosystem projects", "b", "DELETE /v1/admin/projects/<id>"],
+  ["Strict tenant isolation, global view for SCF", "b", "scfa/store.py · /v1/global · test_api_ingest_and_metrics_are_tenant_isolated"],
+  ["API key generation and revocation by operators", "b", "rotate-key and revoke-key routes · same test as enrollment"],
+  ["OSI-approved licence", "b", "Apache-2.0 (LICENSE)"],
+  ["Web metrics: views, visitors, referrers, session length, bounce, country, device, browser", "b", "scfa/umami.py web_summary() · test_web_summary_has_every_rfp_web_metric (not yet run against a live Umami)"],
+  ["Web: bot mitigation, pinned scripts, supply-chain defences, ad-blocker-resistant naming", "d", "docs/WEB-ANALYTICS.md"],
+  ["GDPR without opt-in, data residency, erasure workflow", "d", "docs/PRIVACY-GDPR.md · the erasure call is built"],
+  ["API: dual-export OpenTelemetry into PostgreSQL", "b", "POST /v1/traces (JSON; protobuf is open)"],
+  ["API: keep standard metrics, discard traces and spans", "b", "No trace or span ids stored; 30-day flat rows plus aggregates (see How it works)"],
+  ["API: path normalization with a default rule set", "b", "scfa/otlp.py · test_path_normalization_hides_ids_and_addresses"],
+  ["Aggregated views kept at least 24 months", "b", "scfa/rollup.py · test_rollups_outlive_raw_rows_and_serve_long_windows"],
+  ["Design target about 1,000,000 requests per day", "o", "Load test not run yet"],
+  ["99.99% ingestion and 99.90% dashboard availability", "d", "docs/OPERATIONS.md (needs redundant hosting; cost not yet priced)"],
+  ["Critical and high vulnerabilities patched within 24 hours", "d", "docs/OPERATIONS.md"],
+  ["Handover to a community operator in months 6 to 12", "d", "docs/OPERATIONS.md"],
+  ["Monorepo with runbooks and onboarding guide", "o", "IaC and tests exist; runbook and guide still to write"],
+  ["Proof of adoption: 3 projects on web, 1 on API, demo videos", "o", "Needs real pilot projects"],
+  ["Builder track record with SCF/SDF", "o", "The applicant's own history; add it to the proposal"],
+];
+const FLOW = [
+  ["Your service sends traces", "Any OpenTelemetry SDK (JS, Go, Rust, Python) exports HTTP server spans as JSON (http/json). Protobuf is rejected with HTTP 415 today.", "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"],
+  ["Ingest endpoint", "POST /v1/traces with the project key in the x-scfa-key header. The key is looked up by SHA-256 hash; a wrong key is 401; bodies over 5 MB are 413.", "scfa/app.py"],
+  ["Parse and normalize", "Keeps only SERVER spans (kind 2): the requests a project's API answered. Reads current and pre-1.20 HTTP attribute names. Strips query strings and replaces wallet addresses, hashes, ids and UUIDs in the path with placeholders such as {account}. IPs and user agents are never read.", "scfa/otlp.py"],
+  ["Store", "Two tables: flat request rows (30 days, for exact percentiles and alerts) and hourly rollups of counts and latency histograms (24 months, no trace or span ids). PostgreSQL in production, SQLite for tests. Every query filters by project_id. Keys are stored only as SHA-256 hashes.", "scfa/store.py · scfa/rollup.py"],
+  ["Compute metrics", "Request counts, status classes, nearest-rank percentiles (p50/p95/p99), Stellar protocol grouping, SLO and error budget, and time-series buckets, computed on read. Windows up to 30 days read exact rows; longer windows read the hourly rollups.", "scfa/metrics.py"],
+  ["Serve", "GET /v1/metrics (project key), GET /v1/global (admin token), POST /v1/enroll (self-service), and operator routes to list, rotate or revoke keys and delete a project with all its data. The same handler runs as a local server, an AWS Lambda (HTTP API) or in Docker.", "scfa/app.py"],
+  ["Watch and alert", "Every 5 minutes a scheduled job checks each project's rules (error rate, p95, p99, traffic drop) and posts to a Slack or Discord webhook. The same job purges old raw rows.", "scfa/alerts.py"],
+];
+const STORED = [["api_rollups", "Hourly counts per project, route, method, status class and latency bucket. Kept 24 months. No trace ids, no span ids."], ["api_requests (columns below)", "Flat request rows, kept 30 days. Used for exact percentiles and the 5-minute alert checks."],
+  ["project_id", "Which tenant owns the row; every read is filtered by it."], ["service", "OpenTelemetry service.name, to tell a project's services apart."], ["route", "The route template (for example /sep24/info), with the query string removed."],
+  ["method", "HTTP method."], ["status", "HTTP status code; 5xx counts as a failure."], ["duration_ms", "How long the server took, for the percentiles."], ["ts", "Request start time in whole seconds."]];
+const DEFS = [["Failed rate", "Requests with status 500–599 ÷ all requests."], ["p50 / p95 / p99", "Nearest-rank percentile of duration: the value at position ceil(p/100 × n) in the sorted list."],
+  ["Availability", "1 − failed rate."], ["SLO target", "99.5% availability (fixed in this prototype)."], ["Error budget used", "Failed rate ÷ (1 − target). Above 100% means the target is missed."],
+  ["Protocol group", "First matching route prefix: /sep10, /sep12, /sep24, /sep31, /rpc, /horizon; otherwise Other."], ["Chart bucket", "5 min up to 6 h, 1 h up to 7 days, 6 h up to a month, 1 day beyond."],
+  ["Year view percentiles", "From latency histograms (buckets of 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000 ms), so they are the bucket's upper edge: accurate to the bucket, not exact."],
+  ["Bounce rate / session length", "From Umami: bounces divided by visits, and total time divided by visits."]];
+const DECISIONS = [
+  ["Each project sees only its own data", "Teams will not share traffic numbers with each other.", "test_api_ingest_and_metrics_are_tenant_isolated"],
+  ["Only SERVER spans are counted", "A project's own outgoing calls are not traffic it served.", "test_parse_keeps_only_server_spans_and_strips_query"],
+  ["Query strings are removed", "They often contain tokens or wallet addresses.", "test_parse_keeps_only_server_spans_and_strips_query"],
+  ["Accept old and new OpenTelemetry names", "Older SDKs still send pre-1.20 attribute names.", "test_parse_accepts_old_semconv_names"],
+  ["Percentiles use nearest-rank", "Exact, simple to audit, no interpolation surprises.", "test_percentile_nearest_rank"],
+  ["Bad key and protobuf are rejected clearly", "A clear 401 or 415 beats silent data loss.", "test_api_rejects_bad_key_and_protobuf"],
+  ["The SCF-wide view needs an admin token", "Cross-project totals are an operator-only view.", "test_global_view_requires_admin"],
+  ["Alert rules, including a traffic drop", "A silent outage shows up as too little traffic, not errors.", "test_alert_rules"],
+  ["Raw rows expire after 30 days", "Privacy by default: keep less, for less time.", "test_purge_raw"],
+  ["Same code on Lambda, Docker or a laptop", "No vendor lock-in; cheap to run and to test.", "test_lambda_event_shape"],
+  ["Time ranges 1 h to 1 year", "Operators ask 'is it just now or all week?'", "test_time_ranges_filter_and_bucket"],
+  ["Ids and wallet addresses are replaced in paths", "Keeps wallet addresses out of the database and the number of routes small.", "test_path_normalization_hides_ids_and_addresses"],
+  ["Hourly rollups kept 24 months, raw rows 30 days", "The RFP wants 24 months of aggregated views; we keep as little detail as possible.", "test_rollups_outlive_raw_rows_and_serve_long_windows"],
+  ["Self-service enrollment plus operator remove, rotate and revoke", "Projects join alone; SCF stays in control and can erase a tenant.", "test_self_service_enrollment_and_operator_controls"],
+  ["One summary object for all web metrics", "Every RFP web metric in one tested shape.", "test_web_summary_has_every_rfp_web_metric"],
+  ["Stellar protocol groups, SLO and CSV export", "Make the numbers meaningful on Stellar and portable.", "test_protocol_slo_and_csv_export"],
+  ["Tolerate both Umami response shapes", "Umami changed its API between versions.", "test_umami_stats_both_shapes"]];
+const GAPS = ["Not deployed anywhere; this page is a static example, not a live service.", "The Umami client has not been run against a live Umami yet; the web numbers here are example values.", "Web hardening (pinned scripts with integrity hashes, bot filtering, renamed endpoints) is designed, not built.",
+  "OTLP over protobuf (only JSON works today).", "Automatic Umami setup per project (one website and a read-only share link each).", "This dashboard served live by the API per project (the API serves JSON only).",
+  "A load test at about 10 million spans per day, and a redundant deployment for 99.99% ingestion.", "A runbook and onboarding guide.", "Per-project SLO targets (fixed at 99.5% for now).",
+  "Real pilot projects, demo videos and the applicant's SCF track record."];
+const CMDS = `# 1. run the 17 tests (offline, SQLite)
+python -m pytest -q
+
+# 2. start the API with a file database so keys persist
+export DATABASE_URL=local.sqlite ADMIN_TOKEN=dev
+python -c "from scfa.store import Store; print(Store().create_project('my-anchor','My Anchor'))"   # key, shown once
+python -m scfa.app                                   # http://localhost:8080
+
+# 3. send a trace, then read it back (JSON, CSV, SCF-wide)
+curl -X POST localhost:8080/v1/traces -H "x-scfa-key: <KEY>" -d @trace.json
+curl "localhost:8080/v1/metrics?hours=6" -H "x-scfa-key: <KEY>"
+curl "localhost:8080/v1/metrics?hours=168&format=csv" -H "x-scfa-key: <KEY>"
+curl localhost:8080/v1/global -H "x-scfa-admin: dev"
+
+# 3b. self-service sign-up, then operator controls
+curl -X POST localhost:8080/v1/enroll -d '{"id":"my-wallet","name":"My Wallet"}'
+curl localhost:8080/v1/admin/projects -H "x-scfa-admin: dev"
+curl -X POST localhost:8080/v1/admin/projects/my-wallet/rotate-key -H "x-scfa-admin: dev"
+curl -X DELETE localhost:8080/v1/admin/projects/my-wallet -H "x-scfa-admin: dev"
+
+# 4. regenerate this page's example data
+python demo/build_demo.py
+
+# 5. full stack (Postgres + Umami + API), local, needs Docker
+cd infra && PG_PASSWORD=x UMAMI_SECRET=x ADMIN_TOKEN=dev docker compose -p scfa-local up -d --build`;
+
+function renderStatic() {
+  $("flow").append(...FLOW.map(([t, d, f]) => el("li", {}, el("div", {}, el("h3", {text: t}), el("p", {text: d}), el("span", {class: "pill", text: f})))));
+  $("stored").append(...STORED.map(([a, b]) => el("tr", {}, el("td", {}, el("code", {text: a})), el("td", {class: "wrap2", text: b}))));
+  $("defs").append(...DEFS.map(([a, b]) => el("tr", {}, el("td", {text: a}), el("td", {class: "wrap2", text: b}))));
+  $("decisions").append(...DECISIONS.map(([a, b, c]) => el("tr", {}, el("td", {class: "wrap2", text: a}), el("td", {class: "wrap2", text: b}), el("td", {}, el("code", {text: c})))));
+  const KIND = {b: ["good", "Built"], d: ["warn", "Designed"], o: ["crit", "Open"]};
+  $("rfptbl").append(...RFP.map(([r, k, w]) => el("tr", {}, el("td", {class: "wrap2", text: r}), el("td", {}, chip(KIND[k][0], KIND[k][1])), el("td", {class: "wrap2"}, el("code", {text: w})))));
+  const c = {b: 0, d: 0, o: 0}; RFP.forEach(x => c[x[1]]++);
+  $("rfpsum").textContent = `${c.b} of ${RFP.length} requirements are built and tested, ${c.d} are designed, ${c.o} are open.`;
+  $("gaps").append(...GAPS.map(g => el("li", {text: g})));
+  $("cmds").textContent = CMDS;
+}
+
+function renderAll() {
+  const d = state.data, hrs = state.hrs;
+  $("app").classList.remove("loading");
+  renderOverview(d, hrs); renderProject(d, hrs);
+  $("project").setAttribute("id", "project");
+}
+$("range").addEventListener("change", e => { state.hrs = e.target.value; renderAll(); });
+let rz; new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => state.redraw && state.redraw(), 120); }).observe(document.body);
+
+renderStatic();
 // Works both from the repo root (demo/data.json) and from inside demo/ (data.json)
 fetch("demo/data.json").then(r => r.ok ? r : fetch("data.json")).then(r => r.json()).then(d => {
-  const g = d.global, alerting = new Set(d.alerts.map(a => a.project_id));
-  document.getElementById("strip").innerHTML = [
-    ["Requests", fmt(g.requests)], ["5xx error rate", pct(g.error_rate)],
-    ["p95 latency", g.p95_ms + " ms"], ["Active projects", g.active_projects], ["Alerts firing", d.alerts.length]
-  ].map(([k, v]) => `<div class="stat"><span class="eyebrow">${k}</span><b>${v}</b></div>`).join("");
-  document.getElementById("panels").innerHTML = Object.values(d.projects).map(p => {
-    const a = d.alerts.find(x => x.project_id === p.project.id);
-    return `<article class="panel">
-      <header><h3>${p.project.name}</h3>${a ? `<span class="pill">Alert · 5xx ${pct(a.value)} &gt; ${pct(a.threshold)}</span>` : `<span class="pill ok">Healthy</span>`}</header>
-      <div class="kpis"><span>${fmt(p.requests)} req</span><span>5xx ${pct(p.error_rate)}</span><span>p50 ${p.p50_ms} ms</span><span>p95 ${p.p95_ms} ms</span><span>p99 ${p.p99_ms} ms</span>
-        <span>${Object.entries(p.status_classes).map(([k, v]) => `${k} ${fmt(v)}`).join(" · ")}</span></div>
-      ${spark(p.series)}
-      <div class="tbl"><table><thead><tr><th>Route</th><th class="n">Requests</th><th class="n">5xx</th><th class="n">p95 ms</th></tr></thead>
-      <tbody>${p.routes.map(r => `<tr><td><code>${r.method} ${r.route}</code></td><td class="n">${fmt(r.requests)}</td><td class="n">${pct(r.error_rate)}</td><td class="n">${r.p95_ms}</td></tr>`).join("")}</tbody></table></div>
-    </article>`;
-  }).join("");
-}).catch(() => { document.getElementById("panels").innerHTML = '<p class="muted">The example data file did not load. Open demo/data.json directly.</p>'; });
+  d.names = Object.fromEntries(Object.values(d.ranges["24"].projects).map(p => [p.project.id, p.project.name]));
+  state.data = d; state.pid = Object.keys(d.ranges["24"].projects)[0];
+  const first = $("overview"); if (!$("project")) first.after(el("section", {id: "project"}));
+  renderAll();
+}).catch(err => { $("overview").textContent = "The example data file did not load. Serve the repo with: python -m http.server 8000 (" + err.message + ")"; });
 </script>
 </body>
 </html>

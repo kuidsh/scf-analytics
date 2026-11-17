@@ -6,6 +6,7 @@ with the older (pre-1.20) names accepted as fallbacks.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 SPAN_KIND_SERVER = 2
@@ -13,6 +14,39 @@ SPAN_KIND_SERVER = 2
 ROUTE_KEYS = ("http.route", "url.path", "http.target")
 METHOD_KEYS = ("http.request.method", "http.method")
 STATUS_KEYS = ("http.response.status_code", "http.status_code")
+
+
+# Path normalization (hard-coded default rule set). Replaces identifiers inside a route with
+# placeholders, so wallet addresses, hashes and ids are never stored and the number of
+# distinct routes stays small. Applied before anything is written.
+_STRKEY = re.compile(r"^[GCMSTPX][A-Z2-7]{55,68}$")
+_HEX = re.compile(r"^(?:0x)?[0-9a-fA-F]{32,}$")
+_UUID = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+_NUM = re.compile(r"^\d+$")
+_OPAQUE = re.compile(r"^(?=.*\d)(?=.*[A-Za-z])[A-Za-z0-9_\-=.%+]{24,}$")
+MAX_ROUTE_LEN = 200
+
+
+def _norm_segment(seg: str) -> str:
+    if not seg or seg[0] in "{:" or seg.startswith("<"):
+        return seg  # already a route template such as /accounts/{id}
+    if _STRKEY.match(seg):
+        return {"G": "{account}", "M": "{account}", "C": "{contract}"}.get(seg[0], "{key}")
+    if _UUID.match(seg):
+        return "{uuid}"
+    if _HEX.match(seg):
+        return "{hash}"
+    if _NUM.match(seg):
+        return "{id}"
+    if _OPAQUE.match(seg):
+        return "{token}"
+    return seg
+
+
+def normalize_path(route: str) -> str:
+    route = (route or "/").split("?", 1)[0].split("#", 1)[0]
+    out = "/".join(_norm_segment(s) for s in route.split("/"))
+    return (out if out.startswith("/") else "/" + out)[:MAX_ROUTE_LEN]
 
 
 @dataclass(frozen=True)
@@ -63,7 +97,7 @@ def parse_traces(payload: dict) -> list[ApiRequest]:
                 start = int(span["startTimeUnixNano"])
                 end = int(span["endTimeUnixNano"])
                 route = str(_first(a, ROUTE_KEYS, span.get("name", "/")))
-                route = route.split("?", 1)[0]  # never store query strings
+                route = normalize_path(route)  # no query strings, no ids or wallet addresses
                 out.append(
                     ApiRequest(
                         service=service,
