@@ -213,7 +213,7 @@ scfa/alerts.py     rule evaluation + Slack/Discord webhook
 scfa/umami.py      Umami REST client + web_summary()
 scfa/app.py        HTTP API: Lambda handler + local dev server
 demo/              build_demo.py (example traffic through the real pipeline), index.html, data.json
-docs/              RFP-COVERAGE, WEB-ANALYTICS, PRIVACY-GDPR, OPERATIONS
+docs/              TECHNICAL-ARCHITECTURE, RFP-COVERAGE, WEB-ANALYTICS, PRIVACY-GDPR, OPERATIONS
 infra/             AWS SAM template (not deployed), docker-compose (Postgres + Umami + API), initdb
 tests/test_core.py 18 tests: SQLite, offline
 PROPOSAL.md        draft SCF submission
