@@ -7,7 +7,7 @@
 
 **Privacy-first web and API analytics for Stellar ecosystem projects, run as one shared, multi-tenant service by the Stellar Community Fund (SCF).**
 
-This repository is a working prototype and draft proposal for the SCF RFP Track request
+This repository is a working prototype and the proposal for the SCF RFP Track request
 *"Web and API Analytics for Stellar Ecosystem Projects"*
 ([handbook](https://stellar.gitbook.io/scf-handbook/scf-awards/build-award/rfp-track#current-open-rfps)).
 
@@ -215,7 +215,7 @@ demo/              build_demo.py (example traffic through the real pipeline), in
 docs/              TECHNICAL-ARCHITECTURE, RFP-COVERAGE, WEB-ANALYTICS, PRIVACY-GDPR, OPERATIONS
 infra/             AWS SAM template (not deployed), docker-compose (Postgres + Umami + API), initdb
 tests/test_core.py 18 tests: SQLite, offline
-PROPOSAL.md        draft SCF submission
+PROPOSAL.md        SCF submission
 ```
 
 Design rules: core code is Python standard library only (the single production dependency is `psycopg`); every behaviour change has a test; tests run offline.

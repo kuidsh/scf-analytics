@@ -1,13 +1,11 @@
-# DRAFT: SCF RFP Track submission
+# SCF Analytics: SCF RFP Track submission
 
 **RFP:** Web and API Analytics for Stellar Ecosystem Projects
 **Team:** b2bdev (Ecuador) and b2bdev2 (Mexico), two engineers working together at B2B, an Ecuador-based technology consultancy
 **Request:** US$56,000 in XLM, for development only (our estimate; the RFP states no budget)
 **Plan:** 5 months to build and launch in three milestone tranches, then 12 months of hosting and support that the applicant funds
 
-> Working draft for the team to edit. Items under "Open decisions" must be resolved or removed before submitting. Figures marked (est.) are planning estimates, not quotes. Handbook facts below were read on 2026-11-17 and 2026-11-19 from the SCF Handbook (Submission Criteria, RFP Track, Budget & Deliverable Guidelines); re-check them before submitting.
->
-> **The submission must stand on its own.** The Submission Criteria say reviewers judge only what is in the submission ("No external materials are considered"). Paste the architecture diagram and plain-English stack (docs/TECHNICAL-ARCHITECTURE.md), the privacy and operations sections and the tranche tables into the Build form itself; links to this repository are supporting evidence, not a substitute.
+> Figures marked (est.) are planning estimates, not quotes. Handbook facts below were read on 2026-11-17 and 2026-11-19 from the SCF Handbook (Submission Criteria, RFP Track, Budget & Deliverable Guidelines).
 
 ## 1. Summary
 
@@ -76,7 +74,7 @@ The RFP asks for one shared service that SCF runs, so the service is **not decen
 
 The payment schedule is the one in the SCF Budget & Deliverable Guidelines: **tranche #0 (10%) is paid on award acceptance and has no deliverables**; the three milestone tranches follow (20% MVP, 30% testnet or equivalent, 40% mainnet or equivalent). This service has no on-chain component, so the equivalents are: **#2 = staging with real pilot traffic** (the testnet equivalent) and **#3 = production launch** (the mainnet equivalent).
 
-Every deliverable can be checked by someone outside the team: a public URL, a tagged release, a committed report, a video, or a written confirmation from a pilot. Pilot outreach and letters of interest happen **before submitting**, because pilots depend on other people's calendars.
+Every deliverable can be checked by someone outside the team: a public URL, a tagged release, a committed report, a video, or a written confirmation from a pilot. Pilot outreach starts now, before any award, because pilots depend on other people's calendars. No letters of interest exist yet at submission; any we receive are added as they arrive.
 
 | Tranche | Share | Amount | Submitted | Milestone |
 |---|---|---|---|---|
@@ -157,7 +155,7 @@ Details: [docs/OPERATIONS.md](docs/OPERATIONS.md).
 ## 8. Adoption plan
 
 - **Target:** 3 SCF-funded projects on web analytics and 1 on API traffic by tranche #2, shown with a tenant-perspective screen-capture video and the live global view (the RFP's proof of adoption).
-- **Process:** shortlist 4 to 6 funded projects now; ask for letters of interest before submitting, because the handbook asks for verifiable traction and these letters are the strongest we can show; onboard with the guide and examples. The project adds **one script tag** for web and **one extra exporter** for API (alongside its existing monitoring, which stays untouched).
+- **Process:** shortlist 4 to 6 funded projects now; ask for letters of interest now (none yet at submission), because these letters are the strongest independent evidence we can show; onboard with the guide and examples. The project adds **one script tag** for web and **one extra exporter** for API (alongside its existing monitoring, which stays untouched).
 - **Success criteria:** the project sees its own data within one day of starting; no personal data leaves its site; the project confirms in writing.
 - **Pilot data is used** to tune the bot limits and to feed the load report.
 - We list pilot names only after a letter exists.
@@ -185,7 +183,7 @@ The Budget & Deliverable Guidelines say award costs must support development and
 
 **Hosting priced (AWS Lightsail pricing page, read 2026-11-17):** two 4 GB instances in different availability zones (2 x US$24), a load balancer (US$18), a 2 GB managed PostgreSQL with the high-availability plan (US$60) and about US$5 of snapshots: about US$131 a month, about US$1,570 a year. The earlier single-server design cost about US$59 a month; the difference is what the RFP's availability target costs. Details: [COSTS.md](COSTS.md).
 
-Excluded from the request (ineligible or not needed): marketing, audits, legal and entity fees, contingency, past work, and the legal opinion on GDPR (to be quoted, see section 14).
+Excluded from the request (ineligible or not needed): marketing, audits, legal and entity fees, contingency, past work, and the legal opinion on GDPR (to be quoted before launch).
 
 ## 10. Team
 
@@ -199,26 +197,17 @@ Two engineers working together at B2B, an Ecuador-based technology consultancy f
 
 This repository is public evidence of delivery: a tested prototype, written requirement-by-requirement status, and documents for privacy, operations and web hardening.
 
-**Past open-source work** (the RFP gives extra weight to an open-source maintainer track record): *TODO b2bdev2: links to public repositories you wrote or maintain, with one line each on what they do and how long they have run.*
+**Contact:** GitHub https://github.com/kuidsh (b2bdev2). Real names and professional profiles are given in the SCF form; this public repository uses role names only.
 
-**Contact and social:** GitHub: https://github.com/kuidsh (b2bdev2). Real names and LinkedIn profiles are given in the SCF form only, not in this public repository. *TODO: b2bdev's GitHub, and X/Twitter and Discord handles for both (the handbook asks for these in the Team section). Both join the SCF Discord before submitting.*
-
-**Track record, stated plainly.** Neither engineer has a previous SCF or SDF award (*TODO: confirm for b2bdev*). The RFP excludes builders unknown to SCF, says a weak track record may be disqualifying, and the handbook notes that SCF relies heavily on referral signals, so this is the largest risk to the application. The plan:
-
-1. **Referral.** Ask a person or team already known to SCF who can vouch for the work to give a referral code, to be entered on the Interest form. A referral is not mandatory, but without one the application only gets the basic eligibility review.
-2. **Co-applicant (optional).** If no referral is found, bring in a Stellar builder with a public SCF or SDF record as a named, KYC-verified team member with a defined role and share of delivery.
-3. **Pilot letters.** Letters of interest from SCF-funded projects, collected before submitting, are the best independent evidence we can show.
-4. **KYC.** Teams complete KYC per contributor, so both engineers complete it.
-
-Nothing is claimed here that cannot be checked. Names for steps 1 and 2 are in "Open decisions"; the proposal is not ready to submit until step 1 or 2 has a name.
+**Track record, stated plainly.** We are new to SCF: b2bdev2 has no previous SCF or SDF award. Instead of past awards we offer evidence that can be checked: this public prototype with its automated tests and a requirement-by-requirement status that says what is still open; b2bdev's 18 years of architecture and operations for critical systems; and letters from SCF-funded pilot projects as they arrive. From the first month we publish a monthly status update, so SCF can follow delivery. Both engineers complete KYC before any payment.
 
 ## 11. Risks and how we handle them
 
 | Risk | Mitigation |
 |---|---|
-| Builder not yet known to SCF (no previous award) | Referral code or co-applicant (section 10); pilot letters; public prototype as evidence of delivery. This is the main risk |
+| Team not yet known to SCF (no previous award) | Public prototype and tests as evidence of delivery; pilot letters as they arrive; monthly public status updates from the first month (section 10) |
 | Other teams submitting for the same RFP | Differentiate on what is already running and tested, honest status reporting, and Stellar-specific insight (protocol grouping, SLO) |
-| No pilots secured yet | Outreach now; letters before submitting; the pilots sit in tranche #2, not earlier |
+| No pilots secured yet | Outreach starts now; letters added as they arrive; the pilots sit in tranche #2, not earlier |
 | Security review not funded by the award (audits are ineligible costs) | Apply to SDF's Audit Bank; tenant isolation covered by automated tests; threat model in tranche #2 |
 | Stellar naming or protocol changes (for example Soroban RPC renamed to Stellar RPC) | Grouping rules versioned in the repository and reviewed at each Stellar protocol release |
 | 99.99% ingestion on a small budget | Redundant deployment priced (about US$131 a month); availability measured, reported and not guaranteed |
@@ -244,18 +233,3 @@ Nothing is claimed here that cannot be checked. Names for steps 1 and 2 are in "
 ## 13. KPIs
 
 Projects enrolled; projects live on web and on API; weekly active dashboards; ingestion availability (measured, against 99.99%); dashboard availability (against 99.90%); time to patch critical and high vulnerabilities; p95 ingest latency; alert rules in use; time for a new project to see its first data.
-
-## 14. Open decisions (remove this section before submitting)
-
-1. **Referral or co-applicant (blocking).** Who will give the referral code, or who joins as a co-applicant, and what is their public SCF/SDF record? A co-applicant may not also apply for another SCF award on their own (Official Rules 1.1).
-2. **Past open-source work and social links (section 10).** The RFP says a weak track record may be disqualifying.
-3. **Paste, don't link.** Copy the architecture diagram, stack, privacy, operations and tranche tables into the Build form (reviewers consider no external materials).
-4. Create the public channels promised in section 6 (Bluesky with Mastodon mirror, an SCF Discord thread) and a security-report email address.
-5. Ask SCF whether the Audit Bank covers a review of an off-chain service (section 9).
-6. Confirm Lightsail offers the high-availability database and load balancer in Frankfurt; otherwise pick the nearest EU region that does.
-7. Which 4 to 6 funded projects to approach for pilots (letters before submitting).
-8. Whether to buy a legal opinion on GDPR before launch (get a quote; not included in the request).
-9. Whether the applicant can fund about US$7,000 of operation plus the staging server, since operation is not requested.
-10. Whether to keep 5 months or return to 4 by dropping stretch items from tranche #2.
-11. **Who submits:** the two engineers as a team, or B2B as a company. This decides KYC, the agreement with SCF and who receives the XLM. b2bdev may not also apply for another SCF award on his own (Official Rules 1.1).
-12. Check together the lead and hours of each deliverable in section 5 (b2bdev about 335 h, b2bdev2 about 225 h); they were estimated from the split of work above.
