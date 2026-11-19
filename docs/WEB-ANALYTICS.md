@@ -15,7 +15,7 @@ Trade-offs we accept: Umami is a Node.js application with a heavier footprint th
 
 Page views, unique visitors, visits, referrers, average session duration, bounce rate, country, device and browser, all from Umami's `/stats` and `/metrics` endpoints (see `web_summary()`).
 
-## Hardening plan (designed; to be built and verified in tranche 0 and 1)
+## Hardening plan (designed; to be built and verified in tranche #1)
 
 | RFP concern | Plan |
 |---|---|

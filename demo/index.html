@@ -487,7 +487,7 @@ const RFP = [
   ["OSI-approved licence", "b", "Apache-2.0 (LICENSE)"],
   ["Web metrics: views, visitors, referrers, session length, bounce, country, device, browser", "b", "scfa/umami.py web_summary() · test_web_summary_has_every_rfp_web_metric (not yet run against a live Umami)"],
   ["Web: bot mitigation, pinned scripts, supply-chain defences, ad-blocker-resistant naming", "d", "docs/WEB-ANALYTICS.md"],
-  ["GDPR without opt-in, data residency, erasure workflow", "d", "docs/PRIVACY-GDPR.md · the erasure call is built"],
+  ["GDPR without opt-in, non-compliant jurisdictions stated, data residency, erasure workflow", "d", "docs/PRIVACY-GDPR.md · the erasure call is built"],
   ["API: dual-export OpenTelemetry into PostgreSQL", "b", "POST /v1/traces (JSON; protobuf is open)"],
   ["API: keep standard metrics, discard traces and spans", "b", "No trace or span ids stored; 30-day flat rows plus aggregates (see How it works)"],
   ["API: path normalization with a default rule set", "b", "scfa/otlp.py · test_path_normalization_hides_ids_and_addresses"],
@@ -495,10 +495,13 @@ const RFP = [
   ["Design target about 1,000,000 requests per day", "o", "Load test not run yet"],
   ["99.99% ingestion and 99.90% dashboard availability", "d", "docs/OPERATIONS.md (redundant deployment designed and priced; not built)"],
   ["Critical and high vulnerabilities patched within 24 hours", "d", "docs/OPERATIONS.md"],
-  ["Handover to a community operator in months 6 to 12", "d", "docs/OPERATIONS.md"],
+  ["Handover to a community operator in months 6 to 12 (data migration, domain transfer or redirect)", "d", "docs/OPERATIONS.md · rehearsed in tranche #3"],
+  ["Support: answer within 5 business days, resolve within 10; public issue tracker", "d", "docs/OPERATIONS.md"],
   ["Monorepo with runbooks and onboarding guide", "o", "IaC and tests exist; runbook and guide still to write"],
-  ["Proof of adoption: 3 projects on web, 1 on API, demo videos", "o", "Needs real pilot projects"],
+  ["Proof of adoption: 3 projects on web, 1 on API, tenant-perspective video", "o", "Needs real pilot projects (tranche #2)"],
   ["Builder track record with SCF/SDF", "o", "The applicant's own history; add it to the proposal"],
+  ["Track: decentralization rationale, status updates, latest Stellar stack", "d", "PROPOSAL.md sections 3.3-3.4 · docs/OPERATIONS.md"],
+  ["Track: threat model and monitoring plan in tranche 2", "o", "PROPOSAL.md deliverable 2.4"],
 ];
 const FLOW = [
   ["Your service sends traces", "Any OpenTelemetry SDK (JS, Go, Rust, Python) exports HTTP server spans as JSON (http/json). Protobuf is rejected with HTTP 415 today.", "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"],
@@ -538,7 +541,7 @@ const DECISIONS = [
 const GAPS = ["Not deployed anywhere; this page is a static example, not a live service.", "The Umami client has not been run against a live Umami yet; the web numbers here are example values.", "Web hardening (pinned scripts with integrity hashes, bot filtering, renamed endpoints) is designed, not built.",
   "OTLP over protobuf (only JSON works today).", "Automatic Umami setup per project (one website and a read-only share link each).", "This dashboard served live by the API per project (the API serves JSON only).",
   "A load test at 1,000,000 requests per day, and a redundant deployment for 99.99% ingestion.", "A runbook and onboarding guide.", "Per-project SLO targets (fixed at 99.5% for now).",
-  "Real pilot projects, demo videos and the applicant's SCF track record."];
+  "A threat model and monitoring plan (due in tranche #2).", "Real pilot projects, a tenant-perspective video and the applicant's SCF track record."];
 const CMDS = `# 1. run the 18 tests (offline, SQLite)
 python -m pytest -q
 

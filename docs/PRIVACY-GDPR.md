@@ -11,6 +11,19 @@ Identifiers inside request paths (wallet addresses, hashes, numeric ids, UUIDs, 
 
 Whether data without personal data needs opt-in is a legal judgement. Take advice from a data-protection lawyer before launch.
 
+## Where we do not claim compliance (the RFP asks us to state this)
+
+The design aims at GDPR compliance without client-side opt-in because no personal data is stored. We do **not** claim that for:
+
+| Jurisdiction | Why | What a tenant there should do |
+|---|---|---|
+| Germany | TDDDG §25 is read strictly by some authorities: reading any information from the device may need consent even without cookies | Load the tracker only after consent, or ask their own counsel |
+| Other EU/EEA states with strict ePrivacy readings | National rules on terminal-device access differ | Same as Germany until the legal opinion says otherwise |
+| Countries with data-localisation laws (for example Russia and China) | All data is stored in one EU region | Do not enroll, or confirm locally that aggregate, non-personal analytics is exempt |
+| Cuba, Iran, North Korea, occupied regions of Ukraine | Excluded by SDF's Official Rules and sanctions | Service not offered |
+
+This list is a starting point, not legal advice. A data-protection lawyer reviews it before launch, and the onboarding guide shows the final version to every tenant.
+
 ## Data residency
 
 Choose the hosting region deliberately and publish it. Default plan: one EU region for the managed PostgreSQL and the server, so data never leaves the EU; tenants outside the EU are informed in the onboarding guide. The region is a deployment setting in `infra/`, not a code change.

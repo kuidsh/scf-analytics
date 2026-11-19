@@ -8,7 +8,8 @@
 | Dashboard availability | 99.90% (about 8.8 hours a year) |
 | Critical and high vulnerabilities | patched within 24 hours |
 | Hosting | 12 months after the final tranche |
-| Handover | to a community operator between months 6 and 12 (repository, data, domain) |
+| Support tickets | answered within 5 business days, resolved within 10; no mandatory on-call; a public issue tracker is enough |
+| Handover | to a community operator between months 6 and 12: repository ownership, full data migration, and a domain transfer or permanent redirect |
 
 The earlier draft promised 99.5% ingest uptime. That is below the RFP and has been replaced in PROPOSAL.md.
 
@@ -40,10 +41,23 @@ The single-server tier (one 4 GB instance, standard 2 GB database, about US$59 a
 - CI runs the test suite and a dependency vulnerability scan on every pull request and daily.
 - A critical or high finding opens an issue assigned to the operator; the fix is released by tag and deployed the same day. Container images are pinned by digest so a rebuild is deliberate.
 
+## Support (designed)
+
+- **Where:** the public GitHub issue tracker, with templates for bugs, onboarding help and enrollment requests. Security reports go to a private email address (published in `SECURITY.md`), never to a public issue.
+- **How fast:** first answer within 5 business days; a fix, or a written plan with a date if it needs a release, within 10 business days. Critical and high vulnerabilities follow the 24-hour rule above.
+- **No on-call rotation** (the RFP does not require one). Response hours and the backup operator are published.
+- Response times are reported in the monthly update.
+
+## Community status updates (designed)
+
+- A monthly public update: progress against the current tranche, measured availability, incidents, security fixes, enrolled projects, response times.
+- Posted in the repository (Discussions or a `STATUS.md` log), in the SCF Discord, and on Bluesky with a Mastodon mirror.
+- Incident notes in the issue tracker within 2 business days of an outage.
+
 ## Handover (months 6-12)
 
-Checklist: repository ownership transfer, the AWS account or the infrastructure-as-code needed to recreate it, the domain, the secrets inventory (rotated at handover), data export (`pg_dump` plus the Umami export), the runbook, and a one-week overlap where both operators have access.
+Checklist: repository ownership transfer, the AWS account or the infrastructure-as-code needed to recreate it, the domain (**transferred, or our domain permanently redirects to the new one**), the secrets inventory (rotated at handover), full data migration (`pg_dump` plus the Umami export, restored and checked in the new environment), the runbook, and a one-week overlap where both operators have access. Tranche #3 includes a rehearsal: a tested data migration to a second environment.
 
-## Runbook (to write in tranche 3)
+## Runbook (to write in tranche #3)
 
 Deploy, rollback, restore from backup, rotate the admin token, rotate a tenant key, remove a tenant, and respond to a firing alert.

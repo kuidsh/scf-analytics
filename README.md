@@ -177,19 +177,18 @@ Summary (full table with evidence in [docs/RFP-COVERAGE.md](docs/RFP-COVERAGE.md
 | Status | Requirements |
 |---|---|
 | **Built and tested** | tenant isolation and SCF global view · self-service enrollment · remove a project · key generation, rotation and revocation · OpenTelemetry ingest into PostgreSQL · path normalization · 24-month aggregates · web-metrics client · OSI licence |
-| **Designed, not built** | Umami vs GoatCounter rationale ([docs/WEB-ANALYTICS.md](docs/WEB-ANALYTICS.md)) · web hardening: pinned scripts, supply-chain defences, bot mitigation, ad-blocker-resistant naming · GDPR, residency, erasure ([docs/PRIVACY-GDPR.md](docs/PRIVACY-GDPR.md)) · 99.99% ingestion and 99.90% dashboard availability, 24-hour patching, handover ([docs/OPERATIONS.md](docs/OPERATIONS.md)) |
-| **Open** | live run against a real Umami · load test at the 1,000,000 requests/day design target · runbook and onboarding guide · proof of adoption (3 projects on web analytics, 1 on API, demo videos) · applicant track record with SCF/SDF |
+| **Designed, not built** | Umami vs GoatCounter rationale ([docs/WEB-ANALYTICS.md](docs/WEB-ANALYTICS.md)) · web hardening: pinned scripts, supply-chain defences, bot mitigation, ad-blocker-resistant naming · GDPR, residency, erasure ([docs/PRIVACY-GDPR.md](docs/PRIVACY-GDPR.md)) · 99.99% ingestion and 99.90% dashboard availability, 24-hour patching, support response times, monthly status updates, handover with data migration and domain redirect ([docs/OPERATIONS.md](docs/OPERATIONS.md)) · decentralization rationale and Stellar stack alignment ([PROPOSAL.md](PROPOSAL.md) sections 3.3-3.4) |
+| **Open** | live run against a real Umami · load test at the 1,000,000 requests/day design target · runbook and onboarding guide · proof of adoption (3 projects on web analytics, 1 on API, tenant-perspective video) · threat model and monitoring plan · applicant track record with SCF/SDF |
 
 ## Delivery stages
 
-How the platform reaches the RFP's scope, stage by stage. Each stage says what is built technically and what users can do once it is done. The full draft submission is in [PROPOSAL.md](PROPOSAL.md).
+How the platform reaches the RFP's scope, tranche by tranche. Each tranche says what is built technically and what users can do once it is done. Tranche #0 is paid on award acceptance and has no deliverables (SCF guidelines). The full draft submission, with the cost of each deliverable, is in [PROPOSAL.md](PROPOSAL.md).
 
-| Stage | Technical result | What users get |
+| Tranche | Technical result | What users get |
 |---|---|---|
-| **T0 · Foundation** (month 1) | Public repository, architecture, privacy and operations documents, the Umami vs GoatCounter rationale, staging environment, first tagged release with a bill of materials | Anyone can read, run and review the design and the code |
-| **T1 · MVP** (month 2.5) | Multi-tenant Umami (one website per project), per-project dashboard served by the API, hardened tracker script with an integrity hash, backup and restore drill | A Stellar project signs up, adds one script and one exporter setting, and sees its own web and API data |
-| **T2 · Pilots and scale** (month 4) | 3 SCF-funded projects on web analytics and 1 on API traffic live, SCF global view and alert rules, onboarding guides for the JavaScript, Go, Rust and Python SDKs, a load test at 1,000,000 requests a day | SCF operators see the whole ecosystem; projects get Slack or Discord alerts and instrument their service from a guide |
-| **T3 · Launch** (month 5) | Production with TLS, backups and a redundant ingestion path, failover test and measured availability report, runbook, tested handover | A reliable public service run by the proposer for 12 months, then handed to a community operator |
+| **#1 · MVP** (month 1.5) | Staging with TLS, multi-tenant Umami (one website per project), per-project dashboard served by the API, hardened tracker script with an integrity hash, release with a bill of materials | A Stellar project signs up, adds one script and one exporter setting, and sees its own web and API data |
+| **#2 · Pilots and scale** (month 3, testnet equivalent) | 3 SCF-funded projects on web analytics and 1 on API traffic live with a web onboarding guide and a tenant-perspective video, onboarding guides for the JavaScript, Go, Rust and Python SDKs, a load test at 1,000,000 requests a day, threat model and monitoring plan | SCF operators see the whole ecosystem; projects instrument their site and service from a guide |
+| **#3 · Production launch** (month 5, mainnet equivalent) | Production with TLS, backups and a redundant ingestion path, backup and restore drill, failover test and measured availability report, scanning in CI, alert rule settings in the dashboard, runbook and support process, 10+ projects, tested handover | Slack or Discord alerts from the dashboard; a reliable public service run by the proposer for 12 months, then handed to a community operator |
 
 Possible later features, not in the committed scope: public status page, anomaly alerts, per-project SLO targets, SEP-aware views (for example the SEP-24 deposit flow), Soroban RPC method breakdown, protobuf OTLP, email digests, Prometheus export. See section 3.2 of [PROPOSAL.md](PROPOSAL.md).
 

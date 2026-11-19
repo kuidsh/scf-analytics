@@ -122,18 +122,19 @@ The RFP targets 99.99% ingestion and 99.90% dashboard availability. These are **
 
 * Design: two instances in different zones behind a load balancer, HA managed PostgreSQL, OTel exporters retry on failure, external uptime checks. About US$131 a month; the single-server tier (about US$59) is staging only. Prices and sources: [COSTS.md](../COSTS.md), [OPERATIONS.md](OPERATIONS.md).
 * Vulnerabilities rated critical or high are patched within 24 hours; dependencies are minimal (`psycopg` only).
-* The proposer hosts for 12 months, then hands over to a community operator (months 6-12): repository, infrastructure code, data export, domain, secrets rotated, one-week overlap.
+* The proposer hosts for 12 months, then hands over to a community operator (months 6-12): repository, infrastructure code, full data migration, domain transfer or permanent redirect, secrets rotated, one-week overlap. Support: public issue tracker, answers within 5 business days, resolution within 10; monthly public status updates.
 
 ## 9. Delivery stages
 
 Mirrors [README.md](../README.md#delivery-stages); amounts are in PROPOSAL.md.
 
-| Stage | Month | Technical result |
+Tranche #0 (10%) is paid on award acceptance and has no deliverables (SCF Budget & Deliverable Guidelines). No on-chain component exists, so #2 is the testnet equivalent and #3 the mainnet equivalent.
+
+| Tranche | Month | Technical result |
 |---|---|---|
-| T0 Foundation | 1 | Public repository, architecture, privacy and operations documents, staging environment, first tagged release |
-| T1 MVP | 2.5 | Multi-tenant Umami, per-project dashboard served by the API, hardened tracker, backup and restore drill |
-| T2 Pilots and scale | 4 | 3 web and 1 API pilot live, global view and alerts, onboarding guides (JS, Go, Rust, Python), load test at 1,000,000 requests a day |
-| T3 Launch | 5 | Production with TLS and redundant ingestion, failover test and measured availability report, runbook, tested handover |
+| #1 MVP | 1.5 | Multi-tenant staging (one Umami website per project), per-project dashboard served by the API, hardened tracker, release with SBOM |
+| #2 Pilots and scale (testnet equivalent) | 3 | 3 web and 1 API pilot live with a web onboarding guide and a tenant-perspective video, OpenTelemetry guides (JS, Go, Rust, Python), load test at 1,000,000 requests a day, threat model and monitoring plan |
+| #3 Production launch (mainnet equivalent) | 5 | Production with TLS and redundant ingestion, backup and restore drill, failover test and measured availability report, scanning in CI and alert rule settings, runbook and support process, 10+ projects, tested handover |
 
 ## 10. What exists today
 

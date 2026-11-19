@@ -37,18 +37,19 @@ Prices from the AWS Lightsail pricing page (read 2026-11-17).
 
 The single-server design above (≈ 59/mo) cannot reach the RFP's 99.99% ingestion
 target; this one is designed for it, and availability is measured and published
-rather than guaranteed. The proposal asks SCF to fund development only (US$57,400);
+rather than guaranteed. The proposal asks SCF to fund development only (US$56,000);
 the 12 months of hosting (≈ 1,600) and support (≈ 5,400) are funded by the applicant.
 
 ## Revenue and payback
 
-SCF Build Awards are paid in XLM in four tranches: 10% on award, 20% at MVP,
-30% at testnet, 40% at mainnet launch (SCF v7 page). SCF #45 funded 40 projects
+SCF Build Awards are paid in XLM in four payments: #0 10% on award acceptance (no
+deliverables), #1 20% at MVP, #2 30% at testnet or equivalent, #3 40% at mainnet
+or equivalent (SCF Budget & Deliverable Guidelines, read 2026-11-19). SCF #45 funded 40 projects
 for ≈ US$4.04M of XLM (≈ US$101k average; our division).
 
 | Draft request | Tranche 0 (10%, on award) | Covers |
 |---|---|---|
-| US$57,400 (development only) | US$5,740 | Start cost + 43 months of the redundant deployment, or about 97 months of the single server |
+| US$56,000 (development only) | US$5,600 | Start cost + 42 months of the redundant deployment, or about 94 months of the single server |
 
 Payback depends entirely on winning an award. Timing risk: SCF #45 closed
 2026-08-16 and results were public by 2026-09-30 (~6.5 weeks). If round #47
