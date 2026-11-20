@@ -23,7 +23,7 @@ A working prototype exists and is public. Facts, not promises:
 | Stellar protocol grouping, SLO and error budget, alert rules to Slack/Discord, CSV export | Onboarding guides, runbook, load test, redundant hosting |
 | Umami client covering every RFP web metric | Pilot projects, tenant-perspective screen-capture video |
 
-Requirement-by-requirement status: [docs/RFP-COVERAGE.md](docs/RFP-COVERAGE.md). Prior work is presented as exactly that; the award funds what is in the right-hand column.
+Requirement-by-requirement status: [docs/RFP-COVERAGE.md](docs/RFP-COVERAGE.md). Prior work is presented as exactly that: the prototype is pre-award work, charged at US$0, and the award funds what is in the right-hand column. Dated log of what has landed: [STATUS.md](STATUS.md). Draft threat model: [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
 
 ## 3. Scope
 
@@ -108,7 +108,7 @@ Costs are **person-hours** (one engineer working one hour) at **US$100 an hour**
 | 2.1 | **3 SCF-funded projects on web analytics and 1 on API traffic, live**, with the web onboarding guide, a tenant-perspective screen-capture video and the live SCF global view | b2bdev2 | 85 | 8,500 | Each pilot's site or service sends data; video link; live global view shown to reviewers; written confirmation from each pilot |
 | 2.2 | OpenTelemetry onboarding guides for JavaScript, Go, Rust and Python, each with a working example | b2bdev2 | 30 | 3,000 | Guides and example apps in the repository; reviewers can run an example against staging |
 | 2.3 | Load test at 1,000,000 requests a day (the RFP design target) | b2bdev | 35 | 3,500 | Published report plus the load script, so reviewers can rerun it |
-| 2.4 | **Threat model and monitoring plan** (required by the Submission Criteria in tranche 2), using SDF's Threat Modeling Readiness guide and monitoring-plan template, adapted to an off-chain service | b2bdev | 20 | 2,000 | Both documents committed to the repository |
+| 2.4 | **Threat model and monitoring plan** (required by the Submission Criteria in tranche 2): the draft already published ([docs/THREAT-MODEL.md](docs/THREAT-MODEL.md)) completed against SDF's Threat Modeling Readiness guide and monitoring-plan template, adapted to an off-chain service, with its open items decided | b2bdev | 20 | 2,000 | Both documents committed to the repository |
 
 **Tranche #3 · Production launch, mainnet equivalent (month 5): 220 h, US$22,000** (paid by #3: US$22,400)
 
@@ -138,7 +138,7 @@ Costs are **person-hours** (one engineer working one hour) at **US$100 an hour**
 | Critical and high vulnerabilities patched in 24 hours | One production dependency, pinned images, daily dependency scanning, same-day release process. Two engineers in neighbouring time zones (Ecuador UTC-5, Mexico UTC-6) back each other up; b2bdev leads security response and b2bdev2 is the backup. Neither gives round-the-clock cover, so the response hours are published |
 | 12 months of hosting and support | Included after tranche #3, funded by the applicant |
 | Support tickets answered within 5 business days, resolved within 10 | Public GitHub issue tracker with templates (a private email address for security reports). First answer within 5 business days; fix, or a written plan with a date if it needs a release, within 10. Response times are published in the monthly report. No on-call rotation, as the RFP allows |
-| Regular community status updates | A monthly public update (progress against the tranche, availability, incidents, security fixes, enrolled projects) posted in the repository, in the SCF Discord and on Bluesky with a Mastodon mirror; incident notes in the issue tracker within 2 business days |
+| Regular community status updates | A monthly public update (progress against the tranche, availability, incidents, security fixes, enrolled projects) posted in the repository's [STATUS.md](STATUS.md) (a dated log, started before submission), in the SCF Discord and on Bluesky with a Mastodon mirror; incident notes in the issue tracker within 2 business days |
 | Handover in months 6-12 | Repository ownership transfer, full data migration (PostgreSQL and Umami), infrastructure code, runbook, and either a **domain transfer or a permanent redirect** from our domain; counted as complete only when the new operator runs the system alone for one week |
 
 Details: [docs/OPERATIONS.md](docs/OPERATIONS.md).
@@ -169,7 +169,9 @@ Details: [docs/OPERATIONS.md](docs/OPERATIONS.md).
 | Engineering, 5 months, two engineers (est. 560 person-hours at US$100), itemised per deliverable in section 5 | 56,000 |
 | **Total request** | **56,000** |
 
-An independent security review of authentication and tenant isolation is **not** in the request: the Budget & Deliverable Guidelines exclude audit costs, which SDF's Audit Bank covers for eligible projects. We will apply to the Audit Bank; until then, isolation is covered by automated tests and the tranche #2 threat model.
+The prototype in this repository (section 2) is **pre-award work, charged at US$0**: every hour in the request is new work listed in section 5.
+
+An independent security review of authentication and tenant isolation is **not** in the request: the Budget & Deliverable Guidelines exclude audit costs, which SDF's Audit Bank covers for eligible projects. We will apply to the Audit Bank; until then, isolation is covered by automated tests and the threat model (draft published now, completed in tranche #2).
 
 **Funded by the applicant (12 months of operation, required by the RFP)**
 
@@ -195,20 +197,20 @@ Two engineers working together at B2B, an Ecuador-based technology consultancy f
 
 **Split of work.** b2bdev2 builds the ingestion pipeline, data model, metrics API and dashboards. b2bdev owns the AWS architecture, security hardening, availability and failover, cost control, the 12 months of hosting and the handover to a community operator. Section 5 names the lead for each deliverable and the hours of each engineer.
 
-This repository is public evidence of delivery: a tested prototype, written requirement-by-requirement status, and documents for privacy, operations and web hardening.
+This repository is public evidence of delivery: a tested prototype, written requirement-by-requirement status, a draft threat model, a dated status log, and documents for privacy, operations and web hardening.
 
 **Contact:** GitHub https://github.com/kuidsh (b2bdev2). Real names and professional profiles are given in the SCF form; this public repository uses role names only.
 
-**Track record, stated plainly.** We are new to SCF: b2bdev2 has no previous SCF or SDF award. Instead of past awards we offer evidence that can be checked: this public prototype with its automated tests and a requirement-by-requirement status that says what is still open; b2bdev's 18 years of architecture and operations for critical systems; and letters from SCF-funded pilot projects as they arrive. From the first month we publish a monthly status update, so SCF can follow delivery. Both engineers complete KYC before any payment.
+**Track record, stated plainly.** We are new to SCF: b2bdev2 has no previous SCF or SDF award. Instead of past awards we offer evidence that can be checked: this public prototype with its automated tests and a requirement-by-requirement status that says what is still open; b2bdev's 18 years of architecture and operations for critical systems; and letters from SCF-funded pilot projects as they arrive. A dated public log ([STATUS.md](STATUS.md)) already records what has landed and when; from the first month after an award it carries a monthly status update, so SCF can follow delivery. Both engineers complete KYC before any payment.
 
 ## 11. Risks and how we handle them
 
 | Risk | Mitigation |
 |---|---|
-| Team not yet known to SCF (no previous award) | Public prototype and tests as evidence of delivery; pilot letters as they arrive; monthly public status updates from the first month (section 10) |
+| Team not yet known to SCF (no previous award) | Public prototype and tests as evidence of delivery; pilot letters as they arrive; a dated public status log now and monthly status updates from the first month (section 10) |
 | Other teams submitting for the same RFP | Differentiate on what is already running and tested, honest status reporting, and Stellar-specific insight (protocol grouping, SLO) |
 | No pilots secured yet | Outreach starts now; letters added as they arrive; the pilots sit in tranche #2, not earlier |
-| Security review not funded by the award (audits are ineligible costs) | Apply to SDF's Audit Bank; tenant isolation covered by automated tests; threat model in tranche #2 |
+| Security review not funded by the award (audits are ineligible costs) | Apply to SDF's Audit Bank; tenant isolation covered by automated tests; draft threat model published now, completed in tranche #2 |
 | Stellar naming or protocol changes (for example Soroban RPC renamed to Stellar RPC) | Grouping rules versioned in the repository and reviewed at each Stellar protocol release |
 | 99.99% ingestion on a small budget | Redundant deployment priced (about US$131 a month); availability measured, reported and not guaranteed |
 | 24-hour patching with a two-person team | Automation, two engineers who back each other up, published response hours |
